@@ -1,0 +1,447 @@
+## Make vs studio default editor for git:-
+- git config --global core.editor "code --wait"
+
+## NOTE:-
+- ORIGIN is just the name of the remote location url and can be changed to any name in case of multi remote.
+
+1. Auth for repo/code push using SSH key for no username & password login:-  **Setting up SSH-key for github**			
+- git remote -v 
+- git remote add origin <github SSH url link>
+- git config --global user.name "git username"
+- git config --global user.email "git email"
+- ssh-keygen -t rsa -b 4096 -C "you@email.com"  -- generate a new key.
+- cd ~/.ssh && cat rsa.pub                      -- copy public file.
+- add this key to github in setting to SSH.
+-			   	-- test SSH connection with github
+- git remote set-url origin <github SSH url link>
+- git push origin main 				-- NOTE:- origin is the name of remote repo & main is name of branch.
+
+
+2. reset all commits:-
+- git reset --hard HEAD 			-- will delete all changes and data also that was being made to change.
+- git reset --soft HEAD^			-- will revert latest commit to staging area without deleteing changes.
+
+2. revert from staging to working area?
+- "git rm -r --cached <file>
+
+3. git pull and clone:-
+- git clone <ssh url from git>
+- pull will update the current repo with the changes in the remote repo.  -- combo of fetch from remote and merge into local working branch.
+- clone will create a ful new repo of the remote repo.
+
+4. git fetch :-
+- this only fetch/bring commits files and data onto local system but won't merge it into local branch
+
+5. what is vcs:-
+- version control is the process of tracking and managing changes to files over time and 
+- version control software helps automate this process.
+
+6. what it does and why it’s important:-
+- enables them to manage changes to code and files over time
+- also allows them to work on the same project simultaneously.
+- A good version control system allows for better collaboration and faster development, and it gives you a complete history
+
+7. configure git name and email globally:-
+- git config --global user.name "git username"
+- git config --global user.email "git email"
+
+7.1 configure git name and email locally/for specific repo:-
+- git config --local user.name "git username"
+- git config --local user.email "git email"
+
+8. commands:-
+- git init				-- will create a empty git repo and will create .git having all info and configuration.
+- git add <file/dir name>		-- will move/add data to staging area.
+- git commit -m <your message>		-- will give a chechpoint/commit/save.
+- git log 				-- see all commits with author and email.
+- git log --oneline			-- display commits in one line.
+- git commit --amend			-- 1. when you have add 3 files & commited it & you want to go back **add a file in the latest commit**.
+					   2. add the new file to stagging area & then hit this command & save file.
+					   3. also can **change commit name**
+- git branch 				-- list all branches.
+- git branch -v 			-- list branches with commit id and last commit message.
+- git branch --all 			-- list all local + remote branches.
+- git branch <name>			-- create new branch. make a branch from the current branch HEAD.
+- git switch <branch name>		-- switch/changes branch.
+- git checkout <branch name>		-- switch/changes branch & restore working tree files. **also used to detach HEAD**
+- git commit -a -m "your commit message"-- add and commit your untracked/modified files.
+- git switch -c <branch name>		-- -a=add, -c=create, create a new branch and switch to it.
+- git checkout -b <branch name>		-- -b=branch, create a new branch and switch to it.
+- git branch -d <branch name>		-- delete branch.
+- git branch -D <branch name>		-- delete branch forcefully.
+- git branch -m <branch name>		-- -m=move/rename a branch.   **have to be in the same branch u want to rename.**
+- git branch -M <branch name>		-- -M=move/rename a branch forcefully.
+- git merge <branch u want to merge>	-- switch to a branch to want to merge into and then merge branch u want into current branch.
+- git merge --abort 			-- to abort the merge.
+- git merge --no-ff <branch 2 b merged>	-- to popup message while merging 2 commits from diff branch.
+- git diff 				-- show difference between 2 commits, files, branches, working dir. **show unstaged changes**
+- git diff HEAD 			-- show diff betw HEAD and working dir. 			    **show all changes **
+- git diff --staged/--cached		-- show changes between staging area and our last commit.           **show staged changes**	
+- git diff <branch1>..<branch2>		-- show difference in 2 branches.  **order matters in branches.
+- git diff <commitid1>..<commitid2>	-- show difference in 2 commits.
+- git diff <branch1>..<branch2> filename-- show difference in same file present in to branches.
+- git stash 				-- stash= save for now. save work to do later and not take files that are unstaged to another branch from current.
+- git stash pop				-- bring back/removes from stashed changes in same or another branch.  **can be used on 1 branch branch**
+- git stash apply			-- bring back/removes from stashed changes in same or another branch.  **csn be used on multiple branch**
+- git stash list			-- list series of stash.
+- git stash apply <stash-id from list>  -- e.i:-<stash@{0}>	apply perticular stash.
+- git stash drop <stash-id>		-- remove/drop a perticular stash.
+- git stash clear			-- remove/drop all stash.
+
+**comeback commands**
+#######################################################
+- git checkout <commit id>		-- go back to perticular commit/go back in time to that time to see changes done/undone in that commit.
+- git checkout <branch-name>		-- to comeback.
+#######################################################
+- git checkout HEAD~1			-- used to checkout to commit using HEAD reference. **HEAD~1 = commit before HEAD**
+  											    **HEAD~2 = 2 commit before HEAD**
+
+- git checkout HEAD <file>		-- discard any working dir changes in that file & revert back to the HEAD changes in that file.
+- git checkout -- <file1> <file2> <file3>-- discard all working dir changes in that file & revert back to the HEAD changes in that file.
+
+- git restore <file-name>		-- to undo changes of that file & 	   	    **remove from working area**
+- git restore --source HEAD~1 <>filename-- to undo changes up till HEAD-1.
+- git restore --staged <filename>	-- to remove file add in staging area		    **remove from staging area**
+- git reset <commit-id>			-- to remove/delete commits till that commit id     **remove from commit area**
+					-- does not undo changes performed in files.
+- git reset --hard <commit-id>		-- to remove commits till that commit id & remove changes in file performed.
+
+- git revert <commit id of wrong commit>-- same as RESET, but **creates a brand new commit and reset the changes with new commitid and keeps record of last commit.
+
+- git clone <git ssh url> 		-- copy the repository from remote location. eg:-github, gitlab,etc.
+
+
+***Git Push ***
+- git push <remote> <branch-name to push>	-- push code to remote.
+- git push <remote> <local-branch>:<remote-branch> -- push code to from local branch to desired remote branch name. e.i:in case of multi remote branches.
+- git push -u <remote> <local to b pushed> -- -u= upstream; setup shortcut to push to remote from local
+					      - eg:- 1. git push -u origin master,  then always use <git push> only to push from master to origin.
+					      - **NOTE**:-	specific to branch you are in.
+
+- git fetch <remote>			-- it will bring all changes from remote but will not merge in local repo. e.i:- branches and history from a specific remote repo.
+- git fetch <remote> <remote-branch-name>-- it will bring changes from single remote.			
+- git branch -r				-- view all remote branches.
+- git switch origin/<remote branchName>	-- switch to remote specific branch.
+- git remote remove origin 		-- remove origin url attached.
+
+
+- git pull <remote> <remote-branch>	-- pull + merge changes from remote to local/working directory.
+- git pull				-- 1. we can also use directly git pull staying in specific branch.
+					   2. in such cases git assume to pull origin to current branch.
+
+
+- git rebase <branch to be merged>	-- basing the current branch on tip on another branch.
+					-- commits will be recreated and will be added to tip/start of the branch to be merged. eg:-master.
+- git rebase --abord			-- cancel rebase in case of a conflict.
+- git rebase --continue 		-- continue rebase in case of a conflict.
+
+#######    HOW TO UNDO THNGS WHEN COMMITED:-
+#######
+- git rebase -i HEAD~<no. of commit>	-- -i=interactive, no, of commit=1,2,3,4..
+					-- allows to  edit commit, add files, drop commit, etc.
+					-- 1. pick= use the commit, 
+					   2. reword=use the commit, but edit the commit message,
+					   3. edit= use the commmit but stop for amending,
+					   4. fixup= use same commit msg/contents but meld it into preious commit and discard the commit message,
+					   5. drop= remove commit.
+######
+######
+
+- git tag <tag-name>			-- to create a tag.	**applied on HEAD commit**
+- git tag 				-- view all tags for commits fi here are present.
+- git tag -l "*test-you-want-2-search*" -- search specific tags from all; * indicates before after & *<word>* indicates both b4 and after.
+- git tag -a <name of tag>		-- -a=annotated tag, it will contain author name and mail, also will have message for tag.
+- git show <name of tag>		-- show metadata for annotated tag. e.i:- author, email, message.
+- git tag <name for tag to give> <commit id of tag to change/give>	-- give tag to any commit-id**
+- git tag -f <tag name/no to give> <commitid> -- forcefuly changes the tag, if already exist and you want to change reference.
+- git tag -d <tagname>			-- to delete a tag.
+- git push <remote> <tagname to push>	-- to push a single/perticular tag to github/remote/origin.
+- git push <remote> --tag		-- push all tags to remote location.
+
+
+- git hash-object <filename>		-- will show SHA-1 output for file. will give/show us the unique SHA-1 hash that will be given for that file/object.
+- echo "hi" | git hash-object --stdin	-- will show SHA-1 ouput for word "hi" & not store it.	**single word/line SHA-1**
+- echo "hi" | git hash-object --stdin -w -- will show SHA-1 ouput for word "hi" & **store it**.	**can be seen in .git/objects
+- git cat-file -p <commit-hash/id>	-- will show the human readble content for the commit-hash/id.
+- git cat-file -p <branchName>^{tree}	-- show all trees= folders & blobs= files in that branch.
+- git cat-file -t <commit-hash/id>	-- shows output weather it is a 1. tree, 2. blob, 3. commit
+
+
+#########
+#########
+- git reflog				-- shows logs for reference & does have checkout info and can delete and rebase in it.
+					-- this is not possible using <git log> command.
+- git reflog show HEAD			-- will show all the log with head no., it will even show us checkout & switch we did.
+- git reflog show HEAD@{5}		-- will show all previous logs after HEAD-5, e.i: 6,7,8,9....
+- git reflog show HEAD@{one.month.ago}	-- will show all log one month ago.
+- git reflog master@{one.week.ago}	-- will show all one week ago logs in master branch.
+- git checkout master@{2.days.ago}	-- will checkout to logs in master branch 2 days ago.
+- git diff main main@{yesterday}	-- will show difference in main branch current commit and yesterdays commit.
+
+######
+######	LOCAL ONLY:-
+how to restore lost commits and lost data:-
+- when you have 4 commit & you delete 1 of them.
+- do <git reflog show master> & and copy the HEAD or commithash.
+- then, <git checkout commitid>		-- to go into detached HEAD.
+- git reset --hard <commitid> or HEAD~no. -- this will bring back all the changes in with same commit hash in master logs.
+######
+######
+
+######
+######	LOCAL ONLY:-
+how to undoing a rebase:-
+- when you have 4 commit & you rebases 2 of them.
+- do <git reflog show branchname> & and copy the HEAD or commithash.
+- git reset --hard <commitid> or HEAD~no. -- this will revert all the changes done using rebase with same commit hash in that branch.
+######
+######
+
+
+
+
+9. use of .gitignore:-
+- ** touch .gitignore **
+- open the file and add all files and dir you dont want to see in untracked while using git status.
+- we can tell git which file & dir to ignore in a repo using .gitignore file.
+- eg:- files like secrets, api keys, credentials,etc.
+
+
+10. site for recommended gitignore files based on app you are working with:-
+- .gitignore.io
+
+
+## BRANCHING:-
+
+- allows to work on single thing/code/project parallely.
+- changing 1 branch does not effect another.
+
+11. what is HEAD:-
+- it is simple pointer that refers to current location in your current repo.
+- point to perticular branch reference.
+- the branch which we switch to HEAD point to that branch pointer.
+- branch point is where the branch is ***(bookmark)*** .
+
+
+## NOTE:-
+- when you have a new add untracked file and you make 1 branch and switch i will come with you.
+- use git stash to save work of current branch to do later and not carry work to 2nd branch.
+
+## GIT CONFLICT-
+- But when you modify some file in one branch u cannot switch branch unless u commit or stash modified file.
+
+
+12. what is merging:-
+- combining 1 branch into another.
+- We merge branches, not specific commits.
+- We always merge to the current HEAD branch.
+- 2 merge branches are not always in sync new changes have t be mergeed again.
+
+
+13. git merge concept:-
+- Part 1: Fast Forward Merge  	-- both branches have data that are different & do not collid with each other. eg:- same line diff data = NOOO
+- Part 2: Merge Commit (No Conflicts) -- both have different no. of commits & different files.
+- Part 3: Conflicts! 		-- both have conflict/different data on same line of 2 branches ***with different commit***.
+
+
+14. git diff:-
+- show difference between 2 commits, files, branches, working dir.
+
+15. git stash:-
+- saves working dir work to work on it later.
+- **NOTE**: git stash can be done multiple times using git stash again and again and it will keep work in stash which can be listed by <git stash list>
+
+16. public vs private repo:-
+- public repo can be accessed by everyone, but to push changes you need special permission.
+- anyone can see the public repo.
+- private repo can be only be accessed by owner & people give access.
+
+17. how to change repo type for public to private & vise versa?
+- go to github << repository << setting << general << dangerzone at bottom << change repo visibility.
+
+18. how add Github Collaboration/ add user to modify/push changes?
+- go to github << repository << setting << collaborators << add people -- add username/email of person to be added.
+
+19. What does README.md ?
+- what project does.
+- how to run project.
+- has important info, for anyone new coming is in the read me project.
+
+20. what is markdown?  -- used to create fancy README file.
+- it is used to write simple lines and onver it into HTML page for README.md goood view. 
+- **refer** - https://markdown-it.github.io/
+- # i am a heading!		-- make a heading. No. of hashes can be increased leading to more smaller test. eg:- ## Im heading.
+- Horizontal Rules		-- use --- or ____ or ***, to add lines.
+- **This is bold text**		-- used to bold any text.
+- *This is italic text*		-- used to italic any text.
+- ~~Strikethrough~~		-- used for cutted text.
+- > Blockquotes can also be nested -- used to write under a line having a space inserted. eg:- like a letter.
+- * this is my point		-- used to write pointwise.
+- `code`			-- use to code block/color a word.
+- ```
+  hi it is me		-- used to box a text or code. eg: ```<your text>```
+  ```
+- [click here]			-- to create a website link block.
+  [link](http://www.google.com)
+
+
+21. what is github gist?
+- they are simple way to share code snippets.
+- easy to create but has less feature than a typical repo.
+- go to github << profile << gists << create gist.
+
+22. what is github pages?
+- it is a hosted service for static webpages.
+- supports HTML/CSS/JS.
+- does not support server-side code like python, ruby, node.
+- go to github << repository << setting << pages << select branch to be hosted, refresh and wait you'll get a link.
+- also can add changes and push again, then refresh the page it will adapt the changes on webpage.
+
+
+23. how to configure branch protection rules/protect branch?
+- go to github << repository << setting << branches << add branch protection << add rule.
+
+
+24. what is forking?
+- Forking allows us to create copies of someones github repo into our own github account.
+
+25. What is git rebase?
+- this move entire branch to be merged and put the commits of the current branch we are working in at the very front in linear manner.
+- alternative to git merge.
+- rewrites the commits.
+- also used to cleanup history, ***arrange commits, rewrite messages in the commit***.
+
+
+26. what is git squash?
+- use the current commit but combine it with the previous commit.
+- use commit, but meld into previous commit
+
+
+27. what is git tag?
+- it is used to label commits, for future reference.
+- it is just a sticky note for commits.
+
+28. what is Semantic tag?
+- it is a way of giving a meaning to software releases.
+- how to version should be give to a specific release.
+- 2.4.1 -- 2= major release, 4= minor release, 5= patch release.
+
+29. what is config file in .git folder & how many type we can configure user and email?
+- git config file is the file which has all the user/author based info like name and email.
+- also it can be used to configure system settings like branch color, change text editor,etc.
+- it can be configure via 2 ways:
+	1. locally or can say for specific directory/folder/repo specific
+	2. globally -- all over the system.
+	
+30. what is ref folder in .git folder?
+- it stores the references/pointers/tags for branches.
+- git makes one file for each repo in the /ref/heads folder.
+- ref folder has: 1. heads -- has all branches made and inside it are the commits-id/commit-hash made by you.
+		  2. remotes -- **has git remote location name** having branch inside it with commit hash.
+		  3. tags -- has all the tags you have created.
+
+31. what is objects in .git?
+- has all the repo files.
+- this is where git stores the backup of files, commits in a repo, etc.
+- this files are encypted.
+- 4 types of git objects: 1. commit
+			  2. tree
+			  3. blob
+			  4. annotated tag
+
+32. commit hash?	**can be used for backup**
+- git is base-16 encoded.
+- git uses hashing function called **SHA-1** algorythm.
+- has 40 alphanumeric length.
+- once hash has been store while creating a commit or generating SHA-1 manually it can be retrived using below command:
+- **git cat-file -p >> <file name you want to restore data into>**
+
+33. what is a blob object in git?
+- Blobs are used to **store the content of file** in a given repo.
+- does not even include the files name or any other data.
+- but has it own Blob-hash.
+
+34. what is tree object in git?
+- store the content of directory.
+- each tree contains pointer that refer to blobs & other trees.
+- if we have 1 directory/folder with 1 files in it, git will represent that one tree and tree will refer to blob of that one file.
+
+
+35. what is commits & commits object in git?
+- commit object combines tree object and information about the context that lead to the current tree.
+- commits store a reference to parent 1. commit, 2. author, 3. commiter and 4. commit message.
+- every commit has reference to tree.
+- when a new branch is made, the last commit of the branch is the parent commit for the newly created branch.
+
+
+36. what is reflog?
+- git keeps a record of when the tips of branches & other reference were updated in the repo.
+- we can view and update these reference logs using Git reflog command.
+- go to ~/.git/logs & view HEADS.
+- reflogs are only for local repos not remote repo.
+- they are not permanent. limited to bydefault = 90 days.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

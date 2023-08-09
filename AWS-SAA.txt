@@ -1,0 +1,904 @@
+1. what is AWS?
+- aws is a cloud provider.
+- it is on demand.
+- netflix uses aws.
+
+2. how to choose region? what is AZ?
+- depends on you location & regions that are far away have more latency.
+- all regions do not have all services so choose according to the requirement.
+- regions have AZs.	-- min AZs=3 & max AZs=6
+- each AZ has different data centers having power, n/w & connectivity.
+- AZ are isolated from each other and have low latency, all this together are form/called region.
+- services are region specific or can be global like s3.
+
+
+######################
+IAM
+######################
+
+• IAM = Identity and Access Management.
+• Global service
+• Root account created by default.
+• Users are people within your organization, and can be grouped
+• Groups only contain users, not other groups
+• Users don’t have to belong to a group, and user can belong to multiple groups.
+
+3. what is IAM roles?
+- Some AWS service will need to perform actions on your behalf.
+- To do so, we will assign permissions to AWS services with IAM Roles
+- Common roles: • EC2 Instance Roles • Lambda Function Roles • Roles for CloudFormation 
+
+4. IAM security tools?
+• IAM Credentials Report (account-level)
+- a report that lists all your account's users and the status of their various credentials.
+- info like when was user created, when he changed password, last login, etc in your whole account.
+- IAM << access report << credential report.
+
+• IAM Access Advisor (user-level)
+- it shows the service permissions granted to a user & when those services were last accessed.	
+- You can use this information to revise your policies.
+
+5. what is IAM identity provider/idp?		****************************************************************************
+- IAM identity providers help keep your AWS account secure.
+- you don't have to distribute or embed long-term security credentials, such as access keys, in your application. 
+- To use an IdP, you create an IAM identity provider entity to establish a trust relationship between your AWS account and the IdP.
+						****************************************************************************
+
+
+
+
+######################
+EC-2
+######################
+
+1. what is EC2?
+• EC2 is one of the most popular of AWS’ offering
+• EC2 = Elastic Compute Cloud = Infrastructure as a Service
+• It mainly consists in the capability of :
+- Renting virtual machines (EC2)
+- Storing data on virtual drives (EBS)
+- Distributing load across machines (ELB)
+- Scaling the services using an auto-scaling group (ASG)
+
+
+2. EC2 & config option.
+• Operating System (OS): Linux, Windows or Mac OS 
+• How much compute power & cores (CPU) 
+• How much random-access memory (RAM) 
+• How much storage space: 
+- Network-attached (EBS & EFS) 
+- hardware (EC2 Instance Store) 
+• Network card: speed of the card, Public IP address 
+• Firewall rules: security group 
+• Bootstrap script (configure at first launch): EC2 User Data 
+
+3. what is userdata/bootstrap?
+• It is possible to bootstrap our instances using an EC2 User data script.
+• bootstrapping means launching commands when a machine starts
+• That script is only run once at the instance first start
+• EC2 user data is used to automate boot tasks such as:
+- Installing updates
+- Installing software
+- Downloading common files from the internet
+• The EC2 User Data Script runs with the root user
+#!/bin/bash
+# Use this for your user data (script from top to bottom)
+# install httpd (Linux 2 version)
+yum update -y
+yum install -y httpd
+systemctl start httpd
+systemctl enable httpd
+echo "<h1>Hello World from $(hostname -f)</h1>" > /var/www/html/index.html
+
+
+4. EC-2 instance type example.
+Instance 	vCPU 	Mem (GiB) 	Storage		NetworkPerformance	EBS Bandwidth
+(Mbps)
+t2.micro 	1 	1		 EBS-Only	 Low to Moderate
+t2.xlarge 	4	16 		 EBS-Only 	 Moderate
+c5d.4xlarge 	16 	32 		 1x400 NVMe-SSD  Up to 10 Gbps 		4,750
+r5.16xlarge 	64 	512 		 EBS Only 	 20 Gbps 		13,600
+m5.8xlarge 	32 	128 		 EBS Only 	 10 Gbps 		6,800
+
+
+5. EC2 Instance Types:-
+- GP	-- Great for a diversity of workloads such as web servers or code repositories, give Balance between: compute, memory & storage.
+- CO	-- Great for compute-intensive tasks that require high performance processors, used for High performance web servers.
+- MO	-- Fast performance for workloads that process large data sets in memory, used for relational/non-relational databases.
+- SO	-- Great for storage-intensive tasks that require high, sequential read/write access to large data sets on local storage.
+- AC
+- IF (instance feature)
+- Measuring instance performance
+• m5.2xlarge:
+- m= instance class
+- 5= generation (AWS improves them over time)
+- 2xlarge= size within the instance class
+
+6. what is security group?
+• Security Groups are the fundamental of network security in AWS
+• They control how traffic is allowed into or out of our EC2 Instances.
+• Security groups only contain rules
+• Security groups rules can reference by IP or by security group.
+• Security groups are acting as a “firewall” on EC2 instances 
+• They regulate: 
+- Access to Ports 
+- Authorised IP ranges – IPv4 and IPv6 
+- Control of inbound & outbound  network (from other to the instance)
+• Can be attached to multiple instances
+• Locked down to a region / VPC combination
+• Does live “outside” the EC2 – if traffic is blocked the EC2 instance won’t see it
+• It’s good to maintain one separate security group for SSH access
+• If your application is not accessible (time out), then it’s a security group issue
+• If your application gives a “connection refused“ error, then it’s an application
+error or it’s not launched
+• All inbound traffic is blocked by default
+• All outbound traffic is authorised by default
+- 22 = SSH (Secure Shell) - log into a Linux instance
+- 21 = FTP (File Transfer Protocol) – upload files into a file share
+- 22 = SFTP (Secure File Transfer Protocol) – upload files using SSH
+- 80 = HTTP – access unsecured websites
+- 443 = HTTPS – access secured websites
+- 3389 = RDP (Remote Desktop Protocol) – log into a Windows instance
+• EC2 instance can be associated with up to 5 security groups.
+• Each security group can have a maximum of 60 inbound and 60 outbound rules.
+
+
+7. how to ssh into ec2 with terminal:
+- ***We can’t use a private IP, because we are not in the same network***
+- place ssh key file in same directory u are tryinh to work.
+- chmod 0400 <keyname.pem>	-- to change permission for ssh login
+- ssh -i <keyname.pem> ec2-user@publicip
+
+
+8. ec2 instance types based on purchaing options?
+• On-Demand Instances (high cost)– short workload, predictable pricing, pay by second
+• Reserved (1 or 3 years)  (72% discount)	-- you reserve a specific instance attribute (instance type, region, tenancy, OS)
+- Reserved Instances – long workloads
+- Convertible Reserved Instances – long workloads with flexible instances
+• Savings Plans (1 & 3 years) –commitment to an amount of usage, long workload
+• Spot Instances (90% discount)– short workloads, cheap, can lose instances (less reliable)
+• Dedicated Hosts
+- A physical server with EC2 instance capacity fully dedicated to your use.
+- ******No share of hardware in the same account******
+- book an entire physical server, control instance placement.
+• Dedicated Instances
+- Instances run on hardware that’s dedicated to you.
+- May share hardware with other instances in same account.
+- no other customers will share your hardware.
+- No control over instance placement.
+• Capacity Reservations 
+- Reserve On-Demand instances capacity in a specific AZ for any duration.
+- no billing discounts
+- *****You’re charged at On-Demand rate whether you run instances or not*****
+- reserve capacity in a specific AZ for any duration
+
+
+9. what is the capacity of m4large & m5large?
+- m4.xlarge:
+  vCPUs: 4
+  RAM: 16 GiB
+  Network Performance: Moderate
+- m5.xlarge:
+  vCPUs: 2
+  RAM: 8 GiB
+  Network Performance: Up to 10 Gigabit
+
+
+11. what is spot fleet?
+• Spot Fleets = set of Spot Instances + (optional) On-Demand Instances
+• Can have multiple launch pools, so that the fleet can choose
+• Spot Fleet stops launching instances when reaching capacity or max cost
+• ****Spot Fleets allow us to automatically request Spot Instances with the lowest price****
+
+
+12. public vs private ip?
+• Public IP:
+- Public IP means the machine can be identified on the internet (WWW)
+- Must be unique across the whole web (not two machines can have the same public IP).
+- Can be geo-located easily
+
+• Private IP:
+- Private IP means the machine can only be identified on a private network only
+- The IP must be unique across the private network
+- BUT two different private networks (two companies) can have the same IPs.
+- Machines connect to WWW using a NAT + internet gateway (a proxy)
+- Only a specified range of IPs can be used as private IP
+
+
+13.  what is Elastic ip?
+• When you stop and then start an EC2 instance, it can change its public IP.
+• If you need to have a fixed public IP for your instance, you need an Elastic IP
+• An Elastic IP is a public IPv4 IP you own as long as you don’t delete it
+• You can attach it to one instance at a time
+• With an Elastic IP address, you can mask the failure of an instance or software by rapidly remapping the address to another instance in your account.
+• You can only have 5 Elastic IP in your account (you can ask AWS to increase that).
+• Overall, try to avoid using Elastic IP:
+- They often reflect poor architectural decisions
+- Instead, use a random public IP and register a DNS name to it
+- Or, as we’ll see later, use a Load Balancer and don’t use a public IP
+
+
+14. what is placement group?
+• Sometimes you want control over the EC2 Instance placement strategy
+• That strategy can be defined using placement groups
+• When you create a placement group, you specify one of the following
+strategies for the group:
+- Cluster— clusters instances into a low-latency group in a single Availability Zone
+
+- Spread— spreads instances across underlying hardware (max 7 instances per group per AZ)
+  * The instances in a spread share racks with the instances in the other partitions.
+
+- Partition— spreads instances across many different partitions (which rely on different sets of racks) within an AZ. 
+  * Scales to 100s of EC2 instances per group (Hadoop, Cassandra, Kafka)
+  * The instances in a partition do not share racks with the instances in the other partitions
+
+
+15. what is Elastic Network Interfaces (ENI)?
+• can be attached from one instance to another give private of 1 instance to another. 
+• Each ENI lives within a particular subnet of the VPC
+• Logical component in a VPC that represents a virtual network card
+• The ENI can have the following attributes:
+- Primary private IPv4, one or more secondary IPv4
+- One Elastic IP (IPv4) per private IPv4
+- One Public IPv4
+- One or more security groups
+- A MAC address
+• You can create ENI independently and attach them on the fly (move them) on EC2 instances for failover
+• Bound to a specific availability zone (AZ)
+
+
+16. what happens when you start instance?
+• First start: the OS boots & the EC2 User Data script is run
+• Following starts: the OS boots up
+• Then your application starts
+
+
+17. ec2 hibernate?
+- ec2 << launch instance << advanced details (stop- hibernate behaviour=enable)
+- ec2 << launch instance << storage << chose volume << encryted=true
+- then choose instance << instance state << hibernate
+• Supported Instance Families – C3, C4, C5, I3, M3, M4, R3, R4, T2, T3, …
+• Instance RAM Size – must be less than 150 GB.
+• Instance Size – not supported for bare metal instances.
+• AMI – Amazon Linux 2, Linux AMI, Ubuntu, RHEL, CentOS & Windows…
+• Root Volume – must be EBS, encrypted, not instance store, and large
+• Available for On-Demand, Reserved and Spot Instances
+• An instance can NOT be hibernated more than 60 days
+
+
+18. What’s an EBS Volume?
+• An EBS Volume is a network drive you can attach to your instances while they run
+• It allows your instances to persist data, even after their termination
+• They can only be mounted to one instance at a time (at the CCP level)
+• They are bound to a specific availability zone (Az)
+• but To move a volume across, you first need to snapshot it
+• It can be detached from an EC2 instance and attached to another one quickly
+
+
+19. what is EBS snapshot?
+• Make a backup (snapshot) of your EBS volume at a point in time
+• Not necessary to detach volume to do snapshot, but recommended
+• Can copy snapshots across AZ or Region
+- ec2 << volumes << select << create snapshot	-- create a snapshot from volume
+- ec2 << snapshot << create snapshot << form-instance/from-volume	-- create a snapshot from instance/volume
+- ec2 << snapshot << select << create-volume/create-image/copy-2-another-region/Az	-- create a volume/image/copy-snapshot
+
+
+20. how to recover snapshot after delete?
+- ec2 << snapshot << recycle-bin << Create retention rule << create that rule
+- once this is done delete volume and go to recycle-bin and you can see there your delete snapshot,
+- to recover click on recycle-bin << snapshot << recover
+
+
+
+21. what is AMI?
+• AMI = Amazon Machine Image
+• AMIs are built for a specific AWS Region
+• AMI are a customization of an EC2 instance
+- You add your own software, configuration, operating system, monitoring…
+- Faster boot / configuration time because all your software is pre-packaged
+• AMI are built for a specific region (and can be copied across regions)
+• You can launch EC2 instances from:
+- A Public AMI: AWS provided
+- Your own AMI: you make and maintain them yourself
+- An AWS Marketplace AMI: an AMI someone else made (and potentially sells)
+
+# Process to create AMI:-
+• Start an EC2 instance and customize it
+• Stop the instance (for data integrity)
+• Build an AMI – this will also create EBS snapshots
+• Launch instances from other AMIs
+- ec2 << launch instance << actions << image & template << create-image/create-template-4m-instance	-- create AMIs
+- AMI << actions << launch instance  or ec2 << launch-instance << a section of my ami tab will occure (choose it) << select key << SG << create instance.
+
+
+22. what is EC2 instance store?
+• EBS volumes are network drives with good but “limited” performance
+• If you need a high-performance hardware disk, use EC2 Instance Store
+• Better I/O performance
+• EC2 Instance Store lose their storage if they’re stopped (ephemeral)
+• Good for buffer / cache / scratch data / temporary content
+• Risk of data loss if hardware fails
+• Backups and Replication are your responsibility
+
+
+23. types of EBS volumes?
+• EBS Volumes come in 6 types:
+- gp2 / gp3 (SSD): General purpose SSD volume that balances price and performance for a wide variety of workloads
+- io1 / io2 (SSD): Highest-performance SSD volume for mission-critical low-latency or high-throughput workloads
+- st1 (HDD): Low cost HDD volume designed for frequently accessed, throughput- intensive workloads
+- sc1 (HDD): Lowest cost HDD volume designed for less frequently accessed workloads
+
+• EBS Volumes are characterized in Size | Throughput | IOPS (I/O Ops Per Sec)
+• Only gp2/gp3 and io1/io2 can be used as boot volumes
+
+# General Purpose SSD:
+• Cost effective storage, low-latency
+• System boot volumes, Virtual desktops, Development and test environments
+• 1 GiB - 16 TiB
+• gp3:
+- Baseline of 3,000-16,000 IOPS and throughput of 125-1000 MiB/s
+• gp2:
+- Small gp2 volumes can burst IOPS to 3,000
+- max IOPS is 16,000
+- Size of the volume and IOPS are linked.
+
+# Provisioned IOPS (PIOPS) SSD
+• Critical business applications with sustained IOPS performance
+• Or applications that need more than 16,000 IOPS
+• Great for databases workloads (sensitive to storage perf and consistency)
+• io1/io2 (4 GiB - 16 TiB):
+- Max PIOPS: 64,000 for Nitro EC2 instances & 32,000 for other
+- Can increase PIOPS independently from storage size
+- io2 have more durability and more IOPS per GiB (at the same price as io1)
+• io2 Block Express (4 GiB – 64 TiB):
+- Sub-millisecond latency
+- Max PIOPS: 256,000 with an IOPS:GiB ratio of 1,000:1
+- Supports EBS Multi-attach
+
+# Hard Disk Drives (HDD) 
+• Cannot be a boot volume 
+• 125 GiB to 16 TiB 
+- Throughput Optimized HDD (st1) 
+- Big Data, Data Warehouses, Log Processing 
+- Max throughput 500 MiB/s – max IOPS 500 
+• Cold HDD (sc1): 
+- For data that is infrequently accessed 
+- Scenarios where lowest cost is important 
+- Max throughput 250 MiB/s – max IOPS 250
+
+
+
+24. can you attach multi volumes to one instance?
+- yes we can do so, using io1/io2 family SSD.
+• Attach the same EBS volume to multiple EC2 instances in the same AZ
+• Each instance has full read & write permissions to the high-performance volume
+• can only be possible in one AZ not outside.
+• Use case:
+- Achieve higher application availability in clustered Linux applications (ex: Teradata)
+- Applications must manage concurrent write operations
+• Up to 16 EC2 Instances at a time
+• Must use a file system that’s cluster-aware (not XFS, EXT4, etc…) 
+
+
+
+25. how to encrypt an unencrypted EBS volume?
+• Create an EBS snapshot of the volume
+• Encrypt the EBS snapshot ( using copy )	--encrypt this snapshot= true	-- choose KMS-key
+• Create new ebs volume from the snapshot ( the volume will also be encrypted )
+• Now you can attach the encrypted volume to the original instance
+
+or
+- select unencrypted snapshot << actions << create volume form snapshot << enable encryption & choose kms key << create
+
+
+
+26. what is Elastic File System?
+- EFS << create << customised << in n/w access remove sg & create new sg & attach them in EFS mount target << create.
+- launch 2 instance << in config setting select subnet u want & config setting choose efs option with Add shared file system.
+- ssh/connect in both instance & check /mnt/efs/fs1/ file presence.
+- Do - sudo su, create a file using echo "hello" > /mnt/efs/fs1/hello.txt & check via - cat /mnt/efs/fs1/hello.txt
+- go into 2nd instance and cat /mnt/efs/fs1/hello.txt, you should see the files create in 1st instance 
+• Managed NFS (network file system) that can be mounted on many EC2
+• EFS works with EC2 instances in multi-AZ
+• Highly available, scalable, expensive (3x gp2), pay per use
+• Uses NFSv4.1 protocol
+- Uses security group to control access to EFS
+- Compatible with Linux based AMI (not Windows)
+- Encryption at rest using KMS
+
+- POSIX file system (~Linux) that has a standard file API
+- File system scales automatically, pay-per-use, no capacity planning!
+
+
+27. EFS storage classes? when should you use EFS?
+• Storage Tiers (lifecycle management feature – move file after N days) 
+- Standard: for frequently accessed files 
+- Infrequent access (EFS-IA): cost to retrieve files, lower price to store. Enable EFS-IA with a Lifecycle Policy
+
+• Availability and durability 
+- Standard: Multi-AZ, great for prod 
+- One Zone: One AZ, great for dev, backup enabled by default, compatible with IA (EFS One Zone-IA)
+
+• Over 90% in cost savings
+
+
+28. 	EBS 				vs		EFS				vs		Instance storage
+- 1. used for 1 instance only.			1. used for multiple instances.			1. it is physically attached to instance,
+  2. can be used only for single AZs.		2. can be used in multiple AZs.			   so if you lose instance you'll loss
+  3. can be used for any instance.		3. only used for linux instances.		   all the data.
+  4. low cost					4. high cost.
+  5. limited storage				5. unlimited storage.
+  6. faster than EBS				6. slower.
+
+
+
+
+
+
+#######
+ELB & AutoScaling:
+#######
+
+
+1. what is Scalibility?
+• Scalability means that an application / system can handle greater loads by adapting.
+• There are two kinds of scalability:
+- Vertical Scalability	-- means increasing the size of the instance e.i: form t2.micro to t2.large
+- Horizontal Scalability-- means increasing the number of instances / systems for your application
+
+• Scalability is linked but different to High Availability
+
+
+
+2. what is High Availability?
+• High Availability: Run instances for the same application across multi AZ
+• High Availability usually goes hand in hand with horizontal scaling
+• High availability means running your application / system in at least 2 data centers (== Availability Zones)
+• The goal of high availability is to survive a data center loss
+
+
+
+3. what is load balancing? why use it?
+• Load Balances are servers that forward traffic to multiple servers (e.g., EC2 instances) downstream
+
+*USED CASES:
+• Spread load across multiple downstream instances 
+• Expose a single point of access (DNS) to your application 
+• Seamlessly handle failures of downstream instances 
+• Do regular health checks to your instances 
+• Provide SSL termination (HTTPS) for your websites 
+• High availability across zones 
+• Separate public traffic from private traffic
+
+
+
+4. what is health check? types?
+• Health Checks are crucial for Load Balancers
+• They enable the load balancer to know if instances it forwards traffic to are available to reply to requests
+• The health check is done on a port and a route (/health is common)
+• If the response is not 200 (OK), then the instance is unhealthy
+
+*types:
+1. Classic Load Balancers
+• Supports TCP (Layer 4), HTTP & HTTPS (Layer 7)
+• Health checks are TCP or HTTP based
+• Fixed hostname eg: XXX.region.elb.amazonaws.com
+
+2. Application Load Balancer
+• Application load balancers is Layer 7 (HTTP)
+• Load balancing to multiple HTTP applications across machines (target groups)
+• Load balancing to multiple applications on the same machine (ex: containers)
+• Support for HTTP/2 and WebSocket
+• Support redirects (from HTTP to HTTPS for example)
+• ALB are a great fit for micro services & container-based application
+• Has a port mapping feature to redirect to a dynamic port in ECS
+• Routing tables to different target groups:
+- Routing based on path in URL (example.com/users & example.com/posts)
+- Routing based on hostname in URL (one.example.com & other.example.com)
+- Routing based on Query String, Headers
+• target group for ALB:
+- EC2 instances – HTTP
+- ECS tasks – HTTP
+- Lambda functions – HTTP request is translated into a JSON event
+- IP Addresses – must be private IPs
+- ALB can route to multiple target groups
+- Health checks are at the target group level
+
+
+3. N/w load balancer
+• Network load balancers (Layer 4) allow to:
+- Forward TCP & UDP traffic to your instances
+- Handle millions of request per seconds
+- Less latency ~100 ms (vs 400 ms for ALB)
+• NLB has one static IP per AZ, and supports assigning Elastic IPS
+• NLB are used for extreme performance, TCP or UDP traffic
+• Not included in the AWS free tier
+• target group for ALB:
+- EC2 instances
+- IP Addresses – must be private IPs
+- Application Load Balancer
+- Health Checks support the TCP, HTTP and HTTPS Protocols
+
+
+4. Gateway loadbalancer
+• Deploy, scale, and manage a fleet of 3rd party network virtual appliances in AWS
+• Operates at Layer 3 (Network Layer) – IP Packets
+• Uses the GENEVE protocol on port 6081
+• target group for ALB:
+- EC2 instances
+- IP Addresses – must be private IPs
+
+
+
+
+5. what is a target group?
+- target group is a group of EC2 instance
+
+
+6. how to setup traffic only to access form ALB dns link and not fro ec2 public ip?
+- ec2 << security group << inbound rules << edit << remove httpd << add new rule http with custom option << source= choose ALB SG.
+
+
+7. how to setu rules for ALB in for redirection?
+- EC2 << Load balancers << demo-ALB << HTTP:80 listener << add rules << name << add condition with value= eg:/error (if) << action (then)  << save
+- hit ALB dns link with /error
+
+
+8. what is Healthy threshold & Unhealthy threshold?
+• The number of consecutive health checks successes required before considering an unhealthy target healthy.
+• The number of consecutive health check failures required before considering a target unhealthy.
+
+
+
+9. what is Sticky Sessions (Session Affinity)?
+• It is possible to implement stickiness so that the same client is always redirected to the same instance behind a load balancer
+• This works for Classic Load Balancer, ALB & NLB
+• For both CLB & ALB, the “cookie” used for stickiness has an expiration date you control
+•** Use case: make sure the user doesn’t lose his session data
+• Enabling stickiness may bring imbalance to the load over the backend EC2 instances
+
+
+
+10. types of cookies?
+• Application-based Cookies
+- • Custom cookie - Generated by the target  -- Don’t use AWSALB, AWSALBAPP, or AWSALBTG 
+- • Application cookie - Generated by the load balancer -- Cookie name is AWSALBAPP
+• Duration-based Cookies
+- Cookie generated by the load balancer -- Cookie name is AWSALB for ALB, AWSELB for CLB
+
+
+11. what is Cross-Zone Load Balancing
+• used to distribute the traffic from in multiple AZs equally.
+- eg: in 4 AZ there are 6 instance and in 2nd there are 5, it will send equal % of traffic to each instance, no more no less
+- EC2 << Load balancers << name of ELB	<< attributes << Edit load balancer attributes
+
+• Classic Load Balancer 
+- Disabled by default 
+- No charges for inter AZ data if enabled
+
+• Application Load Balancer 
+- Enabled by default (can be disabled at the Target Group level) 
+- No charges for inter AZ data 
+
+• Network Load Balancer & Gateway Load Balancer 
+- Disabled by default 
+- You pay charges ($) for inter AZ data if enabled 
+
+
+12. what is SSL/TLS?
+• An SSL Certificate allows traffic between your clients and your load balancer
+
+• SSL refers to Secure Sockets Layer, used to encrypt connections
+• TLS refers to Transport Layer Security, which is a newer version
+• Nowadays, TLS certificates are mainly used, but people still refer as SSL
+
+• Public SSL certificates are issued by Certificate Authorities (CA)
+- eg:- Comodo, Symantec, GoDaddy, GlobalSign, Digicert, Letsencrypt, etc… 
+• SSL certificates have an expiration date (you set) and must be renewed
+
+
+
+13. how to enable SSL in ALB & NLB ? how SSL work with loadbalancer in http server? loadbalancer with SSL?
+- EC2 << Load balancers << name of ELB << listner and rules << add rules << https-443 << forward-to-TG << create
+
+- user send req on https << it connects to ur ELB << ELB does SSL certificate termination << & talks to backend EC2 using http via VPC.
+
+• The load balancer uses an X.509 certificate (SSL/TLS server certificate)
+• You can manage certificates using ACM (AWS Certificate Manager)
+• You can create upload your own certificates alternatively
+
+
+14. what is a listener in ELB & target group?
+- A listener is a process that checks for connection requests, using the protocol and port that you configure.
+- The rules that you define for a listener determine how the load balancer routes requests to the targets in one or more target groups.
+
+
+
+15. what is e SNI (Server Name Indication) in HTTPS listener?
+• SNI solves the problem of loading multiple SSL certificates onto one web server (to serve multiple websites)
+• requires the client to indicate the hostname of the target server in the initial SSL handshake
+- The server will then find the correct certificate, or return the default one
+Note:
+• Only works for ALB & NLB (newer generation), CloudFront
+
+
+
+16. Elastic Load Balancers – SSL Certificates
+• Classic Load Balancer (v1)
+- Support only one SSL certificate
+- Must use multiple CLB for multiple hostname with multiple SSL certificates
+
+• Application Load Balancer (v2)
+- Supports multiple listeners with multiple SSL certificates
+- Uses Server Name Indication (SNI) to make it work
+
+• Network Load Balancer (v2)
+- Supports multiple listeners with multiple SSL certificates
+- Uses Server Name Indication (SNI) to make it work
+
+
+
+17. what is Connection Draining ELB?
+• Feature naming
+1) Connection Draining – for CLB
+2) Deregistration Delay – for ALB & NLB
+
+• Time to complete “in-flight requests” while the instance is de-registering/unhealthy
+• Stops sending new requests to the EC2 instance which is de-registering
+
+• Between 1 to 3600 seconds (default: 300seconds)
+
+• Can be disabled (set value to 0)
+• Set to a low value if your requests are short
+
+
+
+
+#######
+AutoScaling:
+#######
+
+
+
+
+1. what is the use of Auto Scaling Group (ASG)?
+• Scale out (add EC2 instances) to match an increased load
+• Scale in (remove EC2 instances) to match a decreased load
+• Ensure we have a minimum and a maximum number of EC2 instances running
+• Automatically register new instances to a load balancer
+• Re-create an EC2 instance in case a previous one is terminated (ex: if unhealthy)
+
+
+
+2. auto scaling? and it components?
+• A Launch Template (older “Launch Configurations” are deprecated)
+- AMI + Instance Type
+- EC2 User Data
+- EBS Volumes
+- Security Groups
+- SSH Key Pair
+- IAM Roles for your EC2 Instances
+- Network + Subnets Information
+- Load Balancer Information
+
+• Min Size / Max Size / Initial Capacity
+• Scaling Policies
+
+
+
+3. types of autoscaling?
+• Dynamic Scaling Policies 
+- based on cpu utilization
+- based on memory utilization
+- based on no. of request
+
+• scheduled scaling 
+- Anticipate a scaling based on known usage patterns
+- Example: increase the min capacity to 10 at 5 pm on Fridays
+
+
+• Predictive Scaling
+- scaling based on metrics/stats from regualar monitering.
+
+
+
+
+
+
+######
+VPC
+######
+
+1. what is CIDR?
+• Classless Inter-Domain Routing – a method for allocating IP addresses
+• Used in Security Groups rules and AWS networking in general
+• They help to define an IP address range:
+- We’ve seen WW.XX.YY.ZZ/32 => one IP
+- We’ve seen 0.0.0.0/0 => all IPs
+- But we can define:192.168.0.0/26 =>192.168.0.0 – 192.168.0.63 (64 IP addresses) 
+
+• A CIDR consists of two components 
+• Base IP 
+- Represents an IP contained in the range (XX.XX.XX.XX) 
+- Example: 10.0.0.0, 192.168.0.0, … 
+• Subnet Mask
+- Defines how many bits can change in the IP 
+- Example: /0, /24, /32 
+• Can take two forms:				 https://www.ipaddressguide.com/cidr
+- /0 = 0.0.0.0 -- all octates can change
+- /8 = 255.0.0.0 -- 3 octates can change
+- /16 = 255.255.0.0 -- 2 octates can change
+- /24 = 255.255.255.0 -- 1 octates can change
+- /32 = 255.255.255.255	-- 0 octates can change
+
+
+
+2. public ip vs Private ip:
+• The Internet Assigned Numbers Authority (IANA) established certain blocks of IPv4 addresses for the use of private (LAN) and public
+(Internet) addresses
+
+• Private IP can only allow certain values:
+- 10.0.0.0 – 10.255.255.255 (10.0.0.0/8) ç in big networks
+- 172.16.0.0 – 172.31.255.255 (172.16.0.0/12) ç AWS default VPC in that range
+- 192.168.0.0 – 192.168.255.255 (192.168.0.0/16) ç e.g., home networks
+
+• All the rest of the IP addresses on the Internet are Public
+
+
+
+
+3. what is vpc?
+• VPC = Virtual Private Cloud
+• You can have multiple VPCs in an AWS region (max. 5 per region – soft limit)
+
+• Max. CIDR per VPC is 5, for each CIDR:
+- Min. size is /28 (16 IP addresses)
+- Max. size is /16 (65536 IP addresses)
+
+• Because VPC is private, only the Private IPv4 ranges are allowed:
+- 10.0.0.0 – 10.255.255.255 (10.0.0.0/8)
+- 172.16.0.0 – 172.31.255.255 (172.16.0.0/12)
+- 192.168.0.0 – 192.168.255.255 (192.168.0.0/16)
+
+• Your VPC CIDR should NOT overlap with your other networks (e.g., corporate)
+
+
+
+
+4. what is subnet?
+• A subnet, or subnetwork, is a network inside a network.
+
+• AWS reserves 5 IP addresses (first 4 & last 1) in each subnet
+• These 5 IP addresses are not available for use and can’t be assigned to an EC2 instance
+• Example: if CIDR block 10.0.0.0/24, then reserved IP addresses are:
+- 10.0.0.0 – Network Address
+- 10.0.0.1 – reserved by AWS for the VPC router
+- 10.0.0.2 – reserved by AWS for mapping to Amazon-provided DNS
+- 10.0.0.3 – reserved by AWS for future use
+- 10.0.0.255 – Network Broadcast Address. AWS does not support broadcast in a VPC, therefore the address is reserved
+
+• Exam Tip, if you need 29 IP addresses for EC2 instances:
+- You can’t choose a subnet of size /27 (32 IP addresses, 32 – 5 = 27 < 29) this is less than 27
+- You need to choose a subnet of size /26 (64 IP addresses, 64 – 5 = 59 > 29)
+
+
+
+5. what is IGW/internet gateway?
+• Allows resources (e.g., EC2 instances) in a VPC connect to the Internet
+• It scales horizontally and is highly available and redundant
+• Must be created separately from a VPC
+• One VPC can only be attached to one IGW and vice versa
+
+• Internet Gateways on their own do not allow Internet access…
+• Route tables must also be edited!
+
+
+
+
+6. give create vpc and use internet for public subnets?
+- create vpc << create subnets for AZs << create routables << add/associate subnets to RT << create IGW 
+- create new instance with above VPC & do ssh connect, you should be able to connect.
+
+
+7. give create vpc and use internet for private subnets?
+- create vpc << create subnets for AZs << create routables << add/associate subnets to RT << create IGW 
+- create new instance with above VPC & do ssh connect, you should be able to connect.
+
+
+
+
+8. what is bastion host?
+• We can use a Bastion Host to SSH into our private EC2 instances
+• The bastion is in the public subnet which is then connected to all other private subnets
+• Bastion Host security group must allow inbound from the internet on port 22 from restricted CIDR, for example the public
+CIDR of your corporation
+• Security Group of the EC2 Instances must allow the Security Group of the Bastion Host, or the private IP of the Bastion host
+
+
+
+
+9. what is NAT instances?
+• NAT = Network Address Translation
+• Allows EC2 instances in private subnets to connect to the Internet
+• Must be launched in a public subnet
+• Must disable EC2 setting: Source /
+destination Check
+• Must have Elastic IP attached to it
+• Route Tables must be configured to route traffic from private subnets to the NAT Instance
+
+		
+
+10. what is nat gateway?
+• AWS-managed NAT, higher bandwidth, high availability, no administration
+• Pay per hour for usage and bandwidth
+• NATGW is created in a specific Availability Zone, uses an Elastic IP
+• Can’t be used by EC2 instance in the same subnet (only from other subnets)
+• Requires an IGW (Private Subnet => NATGW => IGW)
+• 5 Gbps of bandwidth with automatic scaling up to 45 Gbps
+• No Security Groups to manage / required
+
+
+11.	    NAT gateway				          vs 			      NAT instances
+-  1. Highly available within AZ (create in another AZ)		1. Use a script to manage failover between instances
+   2. Up to 45 Gbps 						2. Depends on EC2 instance type
+   3. Managed by AWS 						3. Managed by you
+   4. Per hour & amount of data transferred 			4. Per hour, EC2 instance type and size
+   5. no SG management required					5. SG management required	
+   6. does not Use as Bastion Host				6. Uses as Bastion Host
+
+
+
+12. what is NACL?
+• NACL are like a firewall which control traffic from and to subnets
+• One NACL per subnet, new subnets are assigned the Default NACL
+• You define NACL Rules:
+- Rules have a number (1-32766), lesser the no. = more priority
+- First rule match will drive the decision
+• Newly created NACLs will deny everything
+
+• *** NACL are a great way of blocking a specific IP address at the subnet level ***
+
+• *** DEFAULT Accepts everything inbound/outbound with the subnets it’s associated with ***
+
+
+
+
+13. what is statefull and stateless?
+• statefull -- it means if the request makes through inbound of SG then it will auto allow traffic's outbound & vise versa eg: security groups.
+• stateless -- it means if the request makes through inbound of NACL even then request will be evaluated during outbound & vise versa eg: NACL.
+
+
+
+
+14. 		Security Group 					vs. 				NACLs
+	1. Operates at the instance level 					1. Operates at the subnet level
+	2. Supports allow rules only 						2. Supports allow rules and deny rules
+	3. Stateful: return traffic is automatically allowed,			3. Stateless: return traffic must be explicitly allowed by
+	   regardless of any rules.						   rules (think of ephemeral ports)
+	4. All rules are evaluated before deciding whether to			4. Rules are evaluated in order (lowest to highest) when
+	   allow traffic.							   deciding whether to allow traffic, first match wins.
+	5. Applies to an EC2 instance when specified by				5. Automatically applies to all EC2 instances in the
+	   someone.								   subnet that it’s associated with.	
+									
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

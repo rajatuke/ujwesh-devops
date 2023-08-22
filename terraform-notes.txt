@@ -1,0 +1,546 @@
+NOTE:- 1. Terraform is built on language golang
+       2. uses language called HCL.
+
+       /mnt/c/Users/Pratik/Desktop/deqode/work/2023-test
+
+
+1. what is configuration drift
+- Configuration drift is when the configuration of an environment “drifts”.
+- In other words, config gradually changes, and is no longer consistent with an organization's requirements.
+- happens when changes to software and hardware are made ad hoc, without being recorded or tracked.
+- ***this feature will protect the database from deletion  when enabled***
+-  can we corrected using terraform refresh and terraform plan commands.
+
+2.          declarative                             vs                  imperative
+    1. also called  explicit                                     1. also called implicit
+    2. what you see is what you get                              2. you say what you want and rest is filled in
+    3. zero chance of miss-configuration                         3. more chance of miss-configuration
+    4. require less coding skills                                4. require more coding skills
+    5. highly repeatable                                         5. Ideal for simple or one-off tasks
+    6. less control over the process                             6. more control over the process
+    7. language used eg. JSON, yaml, XML                         7. languages used eg. python, Ruby, Java
+
+
+3. what is infrastructure life cycle?
+-  it is a number of clearly define work phases used by devops engineer two plan when will test deliver and maintain cloud Infra
+
+
+4.what are advantages of Iaac?
+- reliability
+- manageability
+- reusability
+
+
+5. Indempotent vs Non-indempotent?
+- Indempotent = won't recreate what is already created.
+- Non-Indempotent = will again recreate what is already created.
+
+
+6. mutable vs immutable?
+- mutable = resources that are created can be changed.
+- immutable = resources that are once cannot be changed.    ***(terraform)***
+
+
+7. what is GitOps?
+- GitOps is when you take the Iaac code and you use a GIT repository to introduce of formal process to review and accept changes 
+  in the Infra code once that code is accepted automatically  Trigger a deployment.
+- basically it is the automation of the deployment process using Git.
+
+
+8. basic command?
+- terraform init -- initialize your project  pulls latest provider and models
+  - terraform init -upgrade           -- upgrade  all plugins to the latest version
+  - terraform init -get-plugins-false -- skip plugin installation
+  - terraform init -plugin-dir=PATH   -- force login installation to read plugins only from target directory
+- terraform plan -- shows what changes are being made/planned
+- terraform fmt -- does the formating of the .tf files
+  - terraform fmt --diff -- show what it will diff in fmt.
+- terraform validate -- ensures required attributes are present
+- terraform apply -- execute the terraform plan to create the infrastructure/ resources
+- terraform destroy -- destroys the remote infrastructure/ resources
+- terraform apply -refresh-only -- refreshes the terraform state file to match state of remote.
+  - terraform apply -refresh-only -auto-approve -- refreshes the terraform state file to match state of remote and also apply.
+- terraform output -- shows all output mentioned in root modeules.
+- terraform show -- shows current state of remote object or observe updated changes.
+- terraform state list -- list/shows all the remote object current being managed.
+- terraform login -- store remote state.
+
+- terraform init -migrate-state -- to move from remote state to local state.
+- terraform apply -replace="aws_instance.my-ec2instance" -- destroy & apply only specific resource changes.
+- terraform providers -- gives you all the list of providers you are using.
+
+- terraform state list -- list resources in the state
+- terraform state mv -- move an item in the state
+- terraform state pull -- pull current remote state and output to STD out
+- terraform state push -- update remote state from a local state
+- terraform state replace-provider -- provider in the state
+- terraform state rm -- remove instance from the state
+- terraform state show -- show resource in the state
+
+- terraform taint <ResourceName>             -- mark a resource for replacement the next time you run apply
+- terraform apply -replace="<ResourceName>"  -- mark a resource for replacement the next time you run apply
+
+- terraform force-unlock <lock-id> -force   -- to force-unlock state-lock forcefully.
+
+
+9. what is changeset?
+- a collection of comets that represent changes made to a versioning repository.
+- IaaC uses  changeset so you can see what has changed by who overtime.
+
+
+10. what are locals?
+- they are just like variables, used for referencing.
+
+locals {
+    project_name = "ujwesh"
+}
+
+tags = {
+    Name = "test-spot-${local.project_name}"
+  }
+
+
+11. what is outputs?
+- they are a way to show the values of resources created in form of output.
+- also they can be used in modules to reference other modules.
+- terraform output
+
+output "my_public_ip" {
+  description = "Public IP address of the EC2 instance"
+  value       = aws_instance.app_server.public_ip
+}
+
+
+12. what is terraform provisioner?
+- Terraform provisional install software, edit file and provision machines created with  terraform
+- used to pass data to EC2 machines.
+- ***all provisioners require connection block.***
+
+- it has 3 types:-
+1.  local-exec -- it allows you to execute local commands after a resource is provisions. eg:- for local machine.
+               -- unlike outputs it does not need tf apply to show results.
+               -- commonly used to trigger configuration management.
+  resource "aws_instance" "uk" {
+
+    ami           = "ami-0f34c5ae932e6f0e4"
+    instance_type = "t2.micro"
+
+    provisioner "local-exec" {
+      command = "echo ${self.private_ip} >> private_ips.txt"
+      # after apply this will create a file named private_ips.txt & add new cretaed instance ip to it.
+  }
+}
+
+2.  remote-exec -- it allows you to execute commands on a target resource after a resource is created.
+                -- run scripts on machines that on remote target.
+                -- has 3 options 1) inline 2) script 3) scripts.
+    
+    provisioner "remote-exec" {
+    inline = [
+      "echo ${self.private_ip} >> /home/ec2-user/private_ips.txt"
+    ]  
+    connection {
+    type     = "ssh"
+    user     = "ec2-user"
+    host     = "${self.public_ip}"
+    private_key = "${file("/root/.ssh/terraform")}"
+  }
+}
+# /home/ec2-user/ -- path for remote ec2 machine.
+
+3. file (provisiner) -- it is used to copy files/dir from our local machine to our newly created resource.
+                     -- copy files form local machine to remote machine (EC2)
+                     -- source = local path from where to copy file  ;  destination = remote path where to copy file.
+   provisioner "file" {
+    content     = "mars"
+    destination = "/home/ec2-user/barsoon.txt"
+    connection {
+    type     = "ssh"
+    user     = "ec2-user"
+    host     = "${self.public_ip}"
+    private_key = "${file("/root/.ssh/terraform")}"
+  }
+  }
+
+13. what is null resources?
+- null_resource helps us to execute any command remotely/locally to provisioning any resource.
+- even to create a configuration file or perform some command/scripts to change some configuration.
+- **Trigger** is a map of values which causes provisioner to rerun.
+
+resource "null_resource" "status" {
+    provisioner "local-exec" {
+        command = "aws ec2 wait instance-status-ok --instance-ids ${aws_instance.my-server.id}"  ## will wait for instance state ok and then show created.
+    }
+    depends_on = [
+        aws_instance.my-server
+        ]
+  }
+
+
+14. what is data source?
+- it allows to externally refer resources in a terraform code.
+- data source allows terraform to use information  defined outside of  terraform.
+###
+
+data "aws_vpc" "main" {
+  id = "vpc_id"
+}
+###
+
+#reference
+resource "aws_subnet" "example" {
+  vpc_id            = data.aws_vpc.main.id
+  availability_zone = "us-west-2a"
+  cidr_block        = cidrsubnet(data.aws_vpc.selected.cidr_block, 4, 1)
+}
+
+
+15. What is a terraform provider?
+- provider from plugins that allow you to interact with:
+1) cloud service providers eg:- AWS, azure.
+2) Saas                    eg:- github, bitbucket
+3) other APIs              eg:- kubernetes, postgre.
+
+- it has 3 types:
+1) official
+2) verified 
+3) community
+- terraform init will download all the necessary provider plugins listed in a tf config file.
+
+
+16. what is alias?
+- it is used to set multiple terraform provider and referenc them.
+  provider "aws" {
+    alias = "west"                #alias Name
+    region = "us-west-2" 
+  }
+
+  resource "aws_instance" "main" {
+    provider = "aws.west"          #reference form above.
+  }
+
+
+17. what is terraform module?
+- A terraform module is a group of configuration files that provide common configurational functionality:
+1) to reduce code.
+2) reduce time.
+
+18. terraform config files breakdown?
+- resource    "aws_instance"    "my-server" {
+ #BLOCK TYPE   #BLOCK LABEL     #BLOCK LABEL
+
+ami           = "ami-0b0f111b5dcb2800f"
+<IDENTIFIER>       <EXPRESSION>
+}
+
+- BLOCK represent an object.
+- ARGUMENTS assign a value to the name.
+- EXPRESSIONS represent a value,  or by referencing and combining other values.
+
+
+19. what is a terraform.tfvars
+- a variable definition file allows you to set the values for multiple variable at once.
+- by default Terraform.tfvars  will be auto loaded  when included in the root of your project directory.
+
+
+20. variables via environment variable?
+- a variable value can be defined by environment variables.
+- TF_VAR<name>
+- export TF_VAR_image_id=ami-abc123
+
+
+21. types of variable used case:
+1) terraform.tfvars = will auto load while running tf apply
+2) my-variable.tfvars = will notauto load while running tf apply, have to pass with -var-file using CLI.
+3) my-variable.auto.tfvars = will auto load custom var files while running tf apply.
+4) -var-file dev.tfvars = used in CLI, to pass custom var files if not auto.
+5) -var ec2_type="t2.micro" = inline variables via CLI
+6) TF_VAR_my-variable_name = terraform will watch for environment variables that begin with TF_VAR and apply those as variables.
+
+
+22. priority of variables?
+- 5th = environment variable
+- 4th = terraform.tfvars
+- 3rd = terraform.tfvars.json
+- 2nd = .auto.tfvars or .auto.tfvars.json
+- 1st = -var or -var-file
+
+
+23. reference to name values?
+- resources -- <resource type>.<name> -- aws.instance.my-instance
+- input variables -- var.name
+- local values -- local.name
+- Child  module outputs -- module.name  ***
+- data source -- data.<data type>.<Name>
+
+* file system and workspace info:
+- path.module --  path of the module where the expression is placed.
+- path.root --  path of the root module of the configuration.
+- path.cwd --  path of the current working directory.
+- terraform.workspace --  name of currently selected workspace.
+
+* block-local values:
+- count.index --  when you use the count meta argument.
+- each.key/each.value -- when you see the for_each meta argument.
+- self.<attribute> -- self reference information in the block ( provisional and connection)
+
+
+24. meta arguments
+- depends_on --  For specifying explicit dependencies 
+- count      --  for Creating multiple resource according to account
+- for_each   --  *used with Map* to create multiple instances according to a map or set of Strings ##used with each.key & each.value, toset.
+- provider   --  for selecting a non default provider configuration
+- lifecycle  --  for life cycle customisations; allows you to change what happens to resources
+             --  1) prevent destroy   2) create and then destroy.
+- provisioner--  (and connection) for taking extra action after resource creation
+
+
+25. what is terraform taint?
+- terraform taint is used to mark a resource for replacement the next time you run apply
+- it is used to replace/change a damaged resource.
+- earlier it was called taint now it is called -REPLACE.
+
+
+26. what is terraform expression?
+- expressions are used to referred to or compute values a within a configuration.
+1) types and values. -- string, no., bool, null, list(tuple), map(object)
+2) operators         -- are used to perform mathamatical functions.
+3) conditional expressions -- condtion ? true_val : false_vale      ?=if, :=else
+4) for expressions   -- list, set, tuple, map, object.
+5) splat expressions -- Aaj flight expression provides a shorter  expression for FOR expression.
+6) Dynamic blocks    -- dynamic blocks allow you to dynamically construct repetition nested blocks. (make code shorter)
+
+
+
+27. what is NULL?
+- NULL means nothing but use deafult values for below resources & deafult depends on the provider
+
+
+28. what is version constraints?
+-  A version constraints is a string containing one or more conditions, separated by comma
+- MAJOR  --  for API changes
+- MINOR  --  when you add functionality in a backwards compatible manner.
+- PATCH  --  when you make backwards compatible bug fixes.
+
+29. what is terraform state?
+- terraform.tfstate
+- a particular condition of cloud resource at a specific time
+- what is whatever  in the cloud  will match what is inside the TF state file
+****
+- terraform state list -- list resources in the state
+- terraform state mv -- move an item in the state
+- terraform state pull -- pull current remote state and output to STD out
+- terraform state push -- update remote state from a local state
+- terraform state replace-provider -- replace/change provider in the state
+- terraform state rm -- remove instance from the state
+- terraform state show -- show resource in the state
+
+
+
+29. what is terraform state backup?
+- terraform.tfstate.backup
+- just stores 1 state before the current state as backup.
+
+
+30. what is tf init?
+- it is the first command you run  for a new terraform project.
+- if you modify/change dependencies run terraform init again to have it applied a changes.
+
+- download plugin dependencies.
+- create a .terraform directory.
+- create a dependency lock file to enforce expected version for plugins and Terraform itself. **.terraform.lock.hcl**
+
+- terraform init -upgrade           -- upgrade  all plugins to the latest version
+- terraform init -get-plugins-false -- skip plugin installation
+- terraform init -plugin-dir=PATH   -- force login installation to read plugins only from target directory
+
+
+
+31. what is terraform get?
+- terraform get command is used to download and update models in the root models.
+- it only  updates  modules.
+
+
+
+32. how to manage resource drift?
+- drift (configuration/infrastructure)is when your expected resources are in different state then your expected state.
+- can be solved by 3 ways:
+1) replacing resources -- using *-replace*
+2) importing resources -- using *import* command
+3) refresh state       -- using *-refresh-only* flag. when an approved manual configuration of a resource has been  changed/remove
+
+
+
+33. what is terraform  import?
+- the terraform import command is used to import existing resources into terraform.
+
+-   resource "aws_s3_bucket" "example-uk" {
+      bucket = ujwesh123 
+    }
+- terraform import aws_s3_bucket.example-uk <id>         **id means name**=ujwesh123
+
+
+
+
+35. what is terraform refresh?
+- the terraform refresh command read the current settings from all manage *remote* objects and updates the terraform state to match it.
+- terraform apply -refresh-only -auto-approve
+
+
+
+36. terraform trouble shooting?
+-  there are four types of error you can encounter in terraform:-
+1) language errors --  terraform Encounters a Syntax error                **solve= tf fmt, tf validate, tf version**
+2) state  errors -- resources state has changed from expected state in the config. file    **solve= tf refresh, tf apply, tf -replace**
+3) core errors -- a bug has occurred core library                                          **solve= TF_LOG**
+4) provider error -- a provider API has changed or does not work as respected              **solve= TF_LOG**
+
+
+
+37. terraform debugging?
+- this can be done by enabling TF_LOG <environment>.
+- environments = TRACE, DEBUG, INFO, WARN, ERROR, JSON.
+- Options -- TF_LOG_CORE = see only core logs, TF_LOG_PROVIDER = see only provider logs, TF_LOG_PATH = set paths for log.
+
+- <<<<   TF_LOG=TRACE TF_LOG_PATH=./terraform.log terraform apply  >>>>  -- see logs as trace and save into file named terraform.log
+- <<<<   TF_LOG_PROVIDER=TRACE TF_LOG_PATH=./terraform.log terraform apply  >>>>  -- see provider logs as trace and save into file named terraform.log
+
+
+
+38. workflow in terraform?
+- there are 3 types of flow: 1.individual   2.team   3.Terraform cloud (best)
+
+1) write
+- write code in vs-code.
+- store code in VCS e.g: github
+- tf plan & validate to fix errors.
+2) plan
+- when confirm with code commit locally.
+- may be using only single branch.
+- once commit is written, proceed to apply.
+3) apply
+- then run tf apply and will be promted to review the plan.
+- after final review they (me/team) will approve the changes and await provisioning.
+- after successful provisioning they will push the local commit to remote repository.
+
+39. what is backend?
+- Telephone configuration can specify a  backend,  which defines where and how operations are performed.
+- also where state snapshots are Stored
+
+- there are 2 types:-
+1) standard backend
+  - standard backends.  
+  - only store state.  
+  - does not perform Terraform operations like  <tf apply>, we have to use CLI to do so.
+  - third party backends are standard backend eg: AWS S3
+
+          backend "s3" {                                      #S3 as backend
+              bucket = ""
+              key    = "#file to be stored in bucket"
+              region = ""
+            }
+
+
+2) enhanced backend
+  - can do both store state as well as perform terraform operations.
+  - it has 2 types:-
+  1. local - files and data are stored on the local machine executing terraform commands
+           - locks state using system APIs
+           - perform operations locally
+
+          terraform {                                          # backend as local
+            backend "local" {
+              path = "relative/path/to/terraform.tfstate"
+            }
+          }
+
+  2. remote - files and data stored in the cloud eg:- terraform cloud
+            - **you need to setup terraform cloud workspace**
+          
+          terraform {                                          # cloud as backend with workspace as name
+            backend "remote" {
+              hostname     = "app.terraform.io"
+              organization = "#org-name"
+
+              workspaces {
+                name = "#my-app-prod"
+              }
+            }
+          }
+
+           terraform {                                          # cloud as backend with workspace as prefix
+            backend "remote" {
+              hostname     = "app.terraform.io"
+              organization = "#org-name"
+
+              workspaces {
+                prefix = "#my-app"
+              }
+            }
+          } 
+
+NOTE: *****you can cannot have name and prefix in backend together.*****
+
+
+
+40. how to keep backend info hidden if sensitive (backend initialization):
+1) Main.tf
+terraform {                                          # backend as local
+  required_version = "~> 0.12.0"
+
+  backend "remote" {}
+}
+
+2) backend.hcl
+workspaces { name = "workspace"}
+hostname = "app.terraform.io"
+organization = "company"
+
+3) terraform init -backend-config=backend.hcl
+
+
+
+41. what is terraform_remote_state?
+- terraform remote state data source retrieves the root module output from another terraform configuration,
+  using the latest States snapshot from the remote backend.
+- can be performed with  remote and local.
+
+1)    data "terraform_remote_state" "vpc" {
+        backend = "remote"
+
+        config = {
+          organization = "hashicrop"
+          workspace = {
+            name = "vpc-prod"
+          }
+        }
+      }
+
+2)    resource "aws_instance" "foo" {
+        subnet_id = data.terraform_remote_state.vpc.outputs.subnet_id
+}
+
+
+42. what is state locking?
+- terraform will lock your state for all operation that could write state.
+- this prevent other from acquiring the lock and potentially corrupting your state.
+- state locaking occurs automaticallyand is not visible.
+- you can disable state locking  with the -lock flag. (not recommended)
+
+- terraform force-unlock command to  manually unlocked the state if unlocking failed.
+- force-unlock should only be used to unlock your own lock.
+- to force unlock it requires a special lock-id
+
+- <<<< terraform force-unlock <lock-id> -force >>>>
+
+
+43. protect sensitive data?
+- terraform state file can have sensitive data
+
+1) locally
+- do not shared state file.
+- do not commit state file to git repo.
+2) on remote
+- in remote sensitive data is held in memory and not in disk.
+- state file is encrypted at rest.
+- state file is encrypted-in-transit.

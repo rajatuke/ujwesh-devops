@@ -1,0 +1,439 @@
+1. What is an hypervisor?
+-  hypervisor =  mediator between hardware & VM.
+- a software/ firmware/ hardware  that creates and runs VM
+- hypervisor with distribute the RAM, memory and CPU in multiple VM.
+- hypervisor helps in sharing this VM with other environmental like Dev, test, prod.
+- hypervisor directly applied over hardware is called as Type 1 = bare metal hypervisor.
+
+
+
+2. what is container and containerisation? why is it used?
+- container     =  • Layer file system.
+                   • holds the entire package needed to run application.
+
+** NOTE **
+- container do have their OS, containers use 95% of the OS from underline resource & 5% is their own OS (form dockerhub).
+
+
+
+- virtualisations advanced version = containerisation.
+- container does not have its own OS, it uses underline resource OS kernal.
+- SAVE RESOURCES -- container does not use the underline hardware resources while it is not running.
+
+- *** OS level virtualisation = Containerization. ***
+- Containerization is the packaging of software code with just the OS, libraries and dependencies required to run the code 
+  to create a single lightweight executable—called a container.
+
+- ** Containerization is used instead of VM because it helps in avoiding wastage of resources.
+
+
+
+3.  VM  vs  AWS-ec2 vs  docker?
+- VM & EC2 both have hypervisor to distribute the underline hardware.
+- DOCKER has docker engine to distribute the underline hardware to containers.
+
+- VM & EC2 have dependency in the image it self.        = HEAVY
+- docker containers takes dependency from docker hub.   = LIGHTWEIGHT       ***
+
+- hardware once allocated in VM and ec2  **cannot be shared**.
+- container Returns the baseline resources after use,  show the underline resources are **shareable**.
+
+- VM & EC2 = slow
+- docker container = fast
+
+- VM uses H/w level virtualisation.
+- Docker uses OS level virtualisation.
+
+
+
+4. what is docker?
+- Docker is a tool that uses OS level virtualisation to deliver software in form of packets call container.
+
+- Paas service.
+- open source.
+- docker uses container on host OS to run application  rather than creating its own virtual OS.
+- docker can be installed on any OS,  but docker engine run natively on Linux.
+- docker written oin "Go" language.
+
+
+
+5. What is Docker-Engine?
+- docker engine is the one who gives Ram CPU processor from  underline hardware to container.
+
+
+
+6. Does container have OS?
+- Yes, containers do have their own OS.
+- Containers use 95% of the OS from underline resource & 5% is their own OS (form dockerhub).
+
+
+7. Advantages of Docker?
+- No RAM Pre location.              = in VM, OS also requires Ram  but docker does not.
+- low cost                          = as open source.
+- lightweight                       = less resources --  1.CPU   2.RAM   3.Memory.
+- gives continuous integration      = image and  and using same image in different environment.
+- Can run on physical/virtual H.w  e.i:-cloud.
+- You can reuse images.
+- Less time required to create containers.
+
+
+
+8. Disadvantages of Docker?
+- Images share to other  environment must have same  base OS.
+- Not good for application that require good GUI.
+- Difficult to manage large amount of containers.
+- No solution for:-                 1. data backup  &  2. data recovery.
+- Docker is only suitable when development & testing  OS are same.
+
+
+
+9. Docker workflow?
+- Developer  >>  Docker-File  >>  Create image  >>  Store in DockerHUB/Create Containers.
+
+
+
+10. What is LAYERS in container ?
+- LAYERS = 1. FROM
+           2. RUN
+           3. ENTRYPOINT
+- when a container is formed from an image, each and every software is installed in the form of layers.
+
+
+
+11. What is Docker ecosystem ?
+1) DOCKER client    =  • where we work.
+                       • docker user communicate with dockerd through client.
+                       • can communicate with more than one deamon.
+                       • uses CLI/rest API to communicate with dockerd.
+
+2) DOCKERdeamon/server/docker-Engine  =  
+                       • where we run image.
+                       • one who will create container.
+                       • execution point.   -- docker run,, docker pull, etc.
+                       • manager docker services.
+                       • can communicate to other deoamons.
+
+3) DOCKERHUB/registory =
+                       • storage for images.
+                       • Types    1. Public.   2. Private.
+
+                
+4) DOCKER image    =   • images create container.
+                       • it is a template.
+                       • read-only file.
+                       • single file that has all the config to run a container.
+
+5) DOCKER compose   =  • Run multi docker containers based on each other. e.i:- depends-On.
+
+6) DOCKER Host    =    • used to provide environment to run application.
+                       • Contains:- 1. dockerd
+                                    2. docker images.
+                                    3. container.
+                                    4. N/w.
+                                    5. storage.
+
+
+
+
+12. What are the way of creating image ?
+- 1) take image from docker hub.
+  2) create image from docker file.
+  3) create image from existing container.
+
+
+
+13. what is docker container ?
+- Application code + small OS + dependencies & libraries.   =   container.
+- holds the entire package needed to run application.
+- 1. image     = template.
+  2. container = copy of that template.
+
+
+
+14. Commands in docker ?
+
+- docker images                                            -- show all images on machine.
+- docker search <image-name>                               -- find images on dockehub from CLI. e.i:- ubuntu, jenkins, etc.
+- docker pull <image-name>                                 -- download images on dockehub from CLI. e.i:- ubuntu, jenkins, etc.
+- docker run -it --name <cont-name> <image-name> /bin/bash -- give name to container & create container from image & go inside.
+• docker run -it --name ujwesh ubuntu /bin/bash
+- docker run -id --name <cont-name> <image-name> /bin/bash -- give name to container & create container from image but do not go inside.
+• docker run -id --name ujwesh ubuntu /bin/bash
+• docker create --name ujwesh -p 80:80 ubuntu              -- create container on specific port.
+
+- systemctl status docker                                  -- check service start/stop status.
+- service docker status                                    -- check service start/stop status.
+
+- docker start <container-name>                            -- to start a stopped container.
+- docker stop <container-name>                             -- to start a stopped container.
+- docker rm <container-name>                               -- to start a stopped container.
+
+- docker attach <container-name>                           -- to go inside container.
+- docker exec -it <container-name> /bin/bash               -- to go inside container.
+
+- docker ps                                                -- to see running container.
+- docker ps -a                                             -- to see all container.     running + stopped.
+
+- docker --version                                         -- check docker version.
+- cat /etc/os-release                                      -- check version of OS inside our container.
+
+- docker diff <container_id_or_name>                       -- show a list of files/dir. that have been added, modified, or deleted within the container since it was started.
+                                                            • C = changed/modified.
+                                                            • A = added/append.
+                                                            • D = deletion.
+
+- docker build -t <image_name>:<tag> <path-dockerfile_directory> -- create image from docker file.
+• docker build -t ujwesh:backend .                         --  . = docker file in current directory.
+• docker build -t test -f <path/to/custom/Dockerfile2> </path/where/to/create image> -- create comtainer/iamge from custom named dockerfile. 
+
+
+- docker commit <container-name> <image-name-2-b-created>  -- create an image from container.
+
+- docker container inspect <container-name>                -- inspect container.
+
+
+- docker rmi <image-name>                                  -- delete any image.
+
+- docker volume ls                                         -- show all volumes.
+- docker volume create <volume-name>                       -- create a volume.
+- docker volume rm <volume-name>                           -- delete a volume.
+- docker volume prune                                      -- delete all unused a volume.
+- docker volume inspect <volume-name>                      -- inspect volume.
+                                                        
+- docker container rename <cont-ID> <new-Name>             -- rename a container.
+- docker container prune                                   -- delete all stopped containers.
+
+
+- watch 'docker container diff <cont-ID/name>'             -- continue watch changes in container.
+
+- docker container cp <local-file-2-cp> <cont-ID>:<path-where-2-cp-in-cont>   -- copy file from local machine to container.
+
+
+
+
+15. what is 80:80 ?
+- The first 80                    : port on the host machine.
+- The second 80 (after the colon) : port inside the Docker container.
+
+
+
+16. what is the root dir/path of docker ?
+- /var/lib/docker
+
+
+
+17. What are Dockerfile and components of docker file ?
+- DOCKERFILE:- • it is a text file with definition/instructions to build a container.
+               •  helps in automation of docker image creation.
+
+1) FROM         -- for base image selection, should be on the top.
+2) RUN          -- to execute commands.
+3) MAINTAINER   -- owner/any description.
+4) COPY         -- • copy file from local system only.  • cannot download file from internet/remote location.  
+5) ADD          -- • copy file from remote system only. • download from remote & also ** EXTRACT ** them at docker iamge side.
+6) EXPOSE       -- to expose ports.
+7) WORKDIR      -- to select the working directory for container.
+8) CMD          -- execute commands durig container creation.
+9) ENTRYPOINT   -- same as CMD but has high level of priority.
+10) ENV         -- • used to define variables.  • ENV is for future running containers. • ENV are used after container is created to change value inside container. 
+11) ARG         -- • used to define variables.  • ARG for building your Docker image.   • ARG values are not available after the image is built.
+12) VOLUME      -- to create volume for container.
+
+
+
+
+
+18. COPY vs ADD difference ?
+
+• COPY:-
+- COPY is a simple command.
+- It is primarily used for copying local files/directories into the image.
+- Doesn't extract compressed files.
+- doesn't have any built-in intelligence about URLs/remote files.
+- COPY <source> <destination>
+
+   vs
+
+• ADD:-
+- ADD is more feature-rich command.
+- can copy files but also unpack compressed files.  ***
+- ADD <source> <destination>
+- ADD http://example.com/file.zip /app/
+
+
+
+
+
+19. CMD VS ENTRYPOINT ?
+
+• CMD:-
+- specifies the default command/parameters that will be executed when a container is started.
+- can be overridden using CLI or ENTRYPOINT.
+- has low priority as compared to CLI & ENTRYPOINT
+
+   vs
+
+• ENTRYPOINT:-
+- specifies the default command/parameters that will be executed when a container is started.
+- cannot be overridden using CLI.
+- has highest priority as compared to CMD & CLI.
+
+ 
+
+
+
+20. ARG VS ENV ?
+
+• ARG:-
+- variables that are only available during the build of the Docker image.
+- not stored in the final image.
+- ** not accessible when the container is running.
+- ARG APP_VERSION=latest
+
+   vs
+
+• ENV:-
+- ** can be used even when container is running to change parameters.
+- used to define environment variables that are stored in the image.
+- can be accessed & used by processes running in containers based on that image.
+- ENV variable_name=value
+
+
+
+
+
+21. how to reduce the size of docker images (can do it in 5 ways)
+
+
+
+
+22. types of mount in docker?
+1) Bind Mounts:-  • Bind mounts are used to mount a file or directory from the host machine into the container.
+                  • share files between the host and container.  ***
+                  • You can create a bind mount using the -v or --volume option with the docker run.
+                  • Example: docker run -v /host/path:/container/path my-image.
+                  
+2) Volume Mounts: • Volume mounts are used to create and manage named volumes. 
+                  • Volumes can be shared among multiple containers. ***
+                  • Create a volume using the docker volume create command & attach it to containers using the -v or --volume option.
+                  • Docker run -v my-volume:/container/path my-image
+
+3) Tmpfs Mounts:  • Tmpfs mounts create a temporary, in-memory filesystem that can be mounted to a container.
+                  • Data stored in tmpfs mounts is volatile and only exists while the container is running.
+                  • can create a tmpfs mount using the --tmpfs option with the docker run.
+                  • docker run --tmpfs /container/path my-image
+
+
+
+
+23. Docker Volume ?
+- volume = directory in container to hold data, that can be shared.
+- volume in 2 container can be same.
+- even if we stop container we can share volume.
+- ** cannot create volume from existing container.
+- can share volume with as many as container you want.
+- when container deleted, volume remains  =   Advantage.
+
+- ** volume not included when you update an image. new container launched will have same volume as 1st, but vol. will not be shared. 
+
+
+
+
+24. Types of volume share/mapping?
+ volume can be shared/map from:-
+  1) container-2-container
+  • from docker file:
+    FROM ubuntu
+    VOLUME [ "/my-volume" ]
+  - docker run -it --name container-1 <image-name> /bin/bash    -- create 1st container
+  - docker run -it --name container-2 --privileged=true --volumes-from container-1 ubuntu /bin/bash   -- create 2nd cont. with 1st cont. vol.
+  
+  • from CLI:
+  - docker run -it --name container-1 -v /volume-name <image-name> /bin/bash    -- create 1st container
+  - docker run -it --name container-2 --privileged=true --volumes-from container-1 ubuntu /bin/bash
+
+
+  2) Host-2-container (bind mount)
+  - run an ec2 instance.
+  - install docker it.
+  - create 3 file in it. in /home/ec2-user dir.
+  - from inside EC2 instance hit.
+    • docker run -it --name container-1 -v /home/ec2-user:/rajput  --privileged=true ubuntu
+  - this will create a container named container-1 with rajput dir and map it with EC2 instance's /home/ec2-user.
+  - you can see the file present in /home/ec2-user inside container directory named rajput.
+
+
+
+
+
+25. Advantages of volume ?
+- Container volume not dependent on container. ( de-coupling)
+- share volume to different containers.
+- attach volume to multiple container.
+- on deleting container,  volume does not delete.
+
+
+
+
+26. how can volume be created ?
+- docker file:
+  FROM ubuntu
+  VOLUME [ "/my-volume" ]
+
+- while creating container using -v or --volume in docker run command.
+- using CLI: docker volume create my-volume
+
+
+
+
+27. docker volume types ?
+1) Name volume  :- have specific source form outside the container. e.g:- awesome:/bar
+2) Anonymous vol:- • have no specific source.
+                   • therefore when the container is deleted you can instruct docker engine deamon to delete the volume.
+
+
+
+28. what is port expose ?
+- *** container does not have its own IP *** so that user  on internet can access website/ application inside container.
+- Tu overcome this problem we met containers pot with instance IP show that user on internet can access containers application.
+- this is done by  port expose.
+- Logical ports = 0-65535
+
+
+
+
+
+29. ATTACH VS Exec ?
+
+• ATTACH:-
+- does not create a new process. 
+- does not create a new (PID)
+
+• Exec:-
+- create a new process.
+- create a new (PID)
+
+
+
+
+30. EXPOSE VS Publish(-p) ?
+
+• EXPOSE:-
+- less power. 
+- less priority
+
+• Publish(-p):-
+- more power.
+- more priority.
+
+
+
+
+31. how to push/pull image to dockerhub?
+1) create an image.
+2) docker tag <your_image:with_tag> docker-username/repository:any_tag>     -- tag image for push, docker-username is must. ***
+3) docker images                                                  -- check for image tagged properly or not.
+4) docker login                                                   -- connect with dockerhub.
+5) docker push <docker-username/repository:any_tag>               -- push to dockerhub from local.
+
+6) docker pull <docker-username/repository:any_tag>               -- pull from dockerhub to local.

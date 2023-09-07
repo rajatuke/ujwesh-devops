@@ -1,0 +1,532 @@
+1. what does EKS cluster contist of ?
+1) EKS control panel/master nodes.
+- Contains Kubernetes Master components like etcd, kube-apiserver, kube-controller.
+- It’s a managed service by AWS.
+- consists of at least two API server nodes and three etcd nodes that run across 
+  3 Availability Zones within a Region.
+
+2) Worker node and node group.
+- Worker machines in Kubernetes are called nodes.  These are EC2 Instances.
+- EKS worker nodes run in our AWS account and connect to our cluster's control plane via the cluster API server endpoint.
+
+- A node group is one or more EC2 instances that are deployed in an EC2 Autoscaling group.
+
+3) VPC
+- EKS uses AWS VPC network policies to restrict traffic between control plane components to within a single cluster.
+- This secure and highly-available configuration makes EKS reliable and recommended for production workloads.
+
+4) farget profile (serverless)
+
+
+
+
+
+3. how to create an EKS ckuster ?
+- eksctl create cluster --name=eksdemo1 \
+                      --region=us-east-1 \
+                      --zones=us-east-1a,us-east-1b \
+                      --without-nodegroup \
+                      --node-type=t2.micro 
+- no node group means it will not be any ndoe group and when we do Kubectl get nodes,
+  it will show no result but eksctl get cluster will show it.
+
+
+
+
+4. how & why to Create & Associate IAM OIDC Provider for our EKS Cluster ?
+- To enable and use AWS IAM roles for Kubernetes service accounts on our EKS cluster, we must create & associate OIDC identity provider.
+- # Template:-
+
+        eksctl utils associate-iam-oidc-provider \
+            --region region-code \
+            --cluster <cluter-name> \
+            --approve
+
+
+
+
+5. Kubernetes commands:-
+- eksctl create cluster                       -- create a cluster with m4.large capacity.
+- eksctl get cluster                          -- List EKS clusters
+- eksctl get nodegroup --cluster=<clusterName> -- List NodeGroups in a cluster.
+- eksctl utils associate-iam-oidc-provider    -- OIDC provider for EKS cluster.
+  --region us-east-1 --cluster eksdemo1
+
+
+# Delete Node Group
+- eksctl delete nodegroup --cluster=<clusterName> --name=<nodegroupName>
+  -- eksctl delete nodegroup --cluster=eksdemo1 --name=eksdemo1-ng-public1
+
+
+
+# POD:
+- kubectl get nodes -o wide                   -- List Nodes in current kubernetes cluster
+- kubectl describe po <pod-name>              -- show more info of pod for troubleshooting
+- kubectl config view --minify                -- Our kubectl context should be automatically changed to new cluster
+
+- kubectl run <desired-pod-name> --image <Container-Image> --generator=run-pod/v1
+
+- kubectl exec -it <pod-name> -- /bin/bash    -- Connect to Container in a POD.
+- kubectl exec -it my-first-pod ls            -- direct execute any command wihtout going into the container.
+
+- kubectl delete pod <Pod-Name>               -- delete pod
+- kubectl delete pod <rs-Name>                -- delete Replicaset.
+
+- kubectl replace -f replicaset-demo.yml      -- apply changes made in config file.
+
+
+# RS:
+- kubectl get replicaset or rs                -- get replicaset.
+- kubectl describe rs/<replicaset-name>       -- desribe replicaset.
+- kubectl expose pod my-first-pod  --type=NodePort --port=80 --name=my-first-service          -- expose the pod as a service.
+- kubectl expose rs <ReplicaSet-Name>  --type=NodePort --port=80 --target-port=8080 --name=<Service-Name-To-Be-Created>                 -- expose the replicaset as a service.
+
+
+# DEPLOYMENT:
+- kubectl create deployment <Deplyment-Name> --image=<Container-Image>  -- create deployment
+- kubectl get deploy                                -- show deployments.
+- kubectl describe deployment <deployment-name>     -- show more info.
+- kubectl scale --replicas=20 deployment/<Deployment-Name>  -- scale deployment up/down. 
+- kubectl get deployment my-first-deployment -o yaml
+
+
+# CHANGE IMAGE OF RUNNING CONTAINER:
+- kubectl set image deployment/<Deployment-Name> <Container-Name>=<Container-Image>
+- kubectl get deployment my-first-deployment -o yaml   -- see changed name.
+
+
+# Verify Rollout Status 
+- kubectl rollout status deployment/my-first-deployment
+
+
+# Update Deployment
+kubectl set image deployment/<Deployment-Name> <Container-Name>=<Container-Image>
+
+
+# Update Deployment - using Edit Deployment
+- kubectl edit deployment/<Deployment-Name>      -- edit deployment.
+- in this it will auto update after edit
+
+# Check the Rollout History of a Deployment
+- kubectl rollout history deployment/<Deployment-Name>
+
+
+# List Deployment History with revision information
+- kubectl rollout history deployment/my-first-deployment --revision=<revision no.>   -- see changes made during deploy.
+- kubectl rollout history deployment/my-first-deployment --revision=2
+
+
+# Undo Deployment
+- kubectl rollout undo deployment/my-first-deployment
+
+
+# Rollback Deployment to Specific Revision
+- kubectl rollout undo deployment/my-first-deployment --to-revision=3
+
+
+# Rolling Restarts
+- kubectl rollout restart deployment/<Deployment-Name>
+
+
+# Pause & Resume the Deployment: in this it will not auto update after edit
+- kubectl rollout pause deployment/<Deployment-Name>
+- kubectl rollout resume deployment/my-first-deployment
+
+
+
+# Get Worker node IAM Role ARN to attach CSI driver policy for storage access:
+- kubectl -n kube-system describe configmap aws-auth
+
+
+
+# Verify ebs-csi pods running
+- kubectl get pods -n kube-system
+
+- kubectl get pods -o wide                    -- list of Pods with Pod IP and Node in which it is running.
+
+
+
+# create a namespace:
+- kubectl create namespace <any name>         -- create namespace.
+- kubectl get ns                              -- view all namespaces.
+
+
+# Get & Describe Limits
+- kubectl get limits -n dev3                    -- get default limit in any namespace.
+- kubectl describe limits <limit-name> -n dev3  -- describe limits.
+
+# Get & Describe Resource quota
+- kubectl get quota -n dev3                    -- get resource quota. 
+- kubectl describe quota <quota-name> -n dev3  -- describe quota.
+
+
+# Configure kubeconfig for kubectl
+- eksctl get cluster # TO GET CLUSTER NAME
+- aws eks --region <region-code> update-kubeconfig --name <cluster_name>
+  - aws eks --region us-east-1 update-kubeconfig --name eksdemo1      -- update the kube config information.
+
+
+# Download IAM Policy for LoadBalancer controller
+## Download latest
+- curl -o iam_policy_latest.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/docs/install/iam_policy.json
+- create policy.
+  - aws iam create-policy \
+    --policy-name AWSLoadBalancerControllerIAMPolicy \
+    --policy-document file://iam_policy_latest.json
+- copy arn= arn:aws:iam::407542060831:policy/AWSLoadBalancerControllerIAMPolicy
+
+# create iam service account command:
+
+  eksctl create iamserviceaccount \
+    --cluster=my_cluster \
+    --namespace=kube-system \
+    --name=aws-load-balancer-controller \ #Note:  K8S Service Account Name that need to be bound to newly created IAM Role
+    --attach-policy-arn=arn:aws:iam::111122223333:policy/AWSLoadBalancerControllerIAMPolicy \
+    --override-existing-serviceaccounts \
+    --approve
+
+
+
+6. what is 
+- CNI,
+2. OIDC             --  This is typically done to enable Kubernetes RBAC (Role-Based Access Control) with IAM roles for service accounts., 
+- servicerole, 
+- service discovery,
+4. Service account  -- it is used to assosicate iam policies to IAM roles and pass these roles as annotations in Service account.
+,                   -- this service account is used by deployments to assign needed services permissions in order to create Cloud/aws resources.
+- control Plane SG, 
+- policies in eks to be given 
+- IngressNodeToDefaultClusterSG 
+- what is max serge ??
+
+
+7. components in K8s ?
+1) Master node:-
+1. API server  - Master node communicates with the rest of the cluster through API server.
+               - validates and executes user's commands.
+               - also makes sure that configuration in etcD matches with configuration of container deployed in cluster.
+
+2. ETCD        - it is a key:value store used by K8s to store all data used to manage the cluster.
+               - health and auditing conflict between multiple master nodes.
+
+3. Kube-scheduler - responsible for distributing work/ containers across multiple notes.
+                  - Looks for newly created container and assigns them to node.
+
+4. Kube-controller- main brain behind container orchestration.
+                  - responsible for noticing and responding when nodes container or end points go down,  in such cases controller make decisions to bring up new container.
+                  - has following controllers:-
+                    • Node Controller
+                    • Replication Controller
+                    • Endpoint Controller
+                    • Service account & Token Controller
+
+5. cloud-controller-manager - A Kubernetes control plane component that embeds cloud-specific control logic.
+                            - only runs controllers that are specific to your cloud provider.
+                            - has 2 controllers:-
+                              • Route controller.
+                              • Service controller.
+
+
+2) Worker node:-
+1. Container Runtime - Container Runtime is the underlying software where we run all these Kubernetes components. 
+                     - We are using Docker, but we have other runtime options like rkt, container-d etc.
+
+                      
+2. Kubelet           - This agent is responsible for carry out tasks requested by Master node on worker node.
+                     - Kubelet is the agent that runs on every node in the cluster.
+
+3. Kube-proxy        - responsible for ensuring network traffic is a routed properly to internet and external services as required.
+                     - Kube-proxy is the agent that runs on every node in the cluster.
+
+
+
+
+
+8. what is a container ?
+- Container is a light weight package that consists of Application code, required dependencies and libraries to run an application in a specific environment.
+- it can be delivered in the form of images.
+
+
+
+
+9. what is a POD ?
+- it is a single instance of an application.
+- A POD is the smallest object that we can create in Kubernetes.
+- top one or more container that logically go together,  along with rules that control how the container Run.
+
+
+
+
+10. what is a replica-set ?
+- A ReplicaSet will maintain a stable set of replica Pods running at any given time. 
+
+
+
+
+11. what is a Deployment ?
+- A Deployment runs multiple replicas of your application and automatically replaces any instances that fail or become unresponsive.
+- Deployments are well-suited for stateless applications.
+
+
+
+
+12. what is a Service ?
+- A service is an abstraction for pods, providing a stable, so called virtual IP (VIP) address.
+- In simple terms, service sits Infront of a POD and acts as a load balancer. 
+- We can expose an application running on a set of PODs using different types of Services available in k8s.
+  • ClusterIP    -- access app within cluster.
+  • NodePort     -- access app outside cluster/on internet.
+  • LoadBalancer -- access app outside cluster using a DNS name.
+  • Ingress      -- Ingress is an advanced load balancer which provides Context path based routing, SSL, SSL Redirect.
+  • ExternalName -- To access externally hosted apps in k8s cluster (Example: Access AWS RDS Database endpoint by application present inside k8s cluster).
+  
+
+- Kubernetes services connect a set of pods to an abstracted service name and IP address. 
+- Services provide discovery and routing between pods. 
+- e.g: For example, services connect an application front-end to its backend, each of which running in separate deployments in a cluster.
+
+
+
+
+
+
+13. what is helper/sidecar container ?
+- it is used to help the main container in the pods.
+- used by main container for:-
+  • Data Pullers: Pull data required by Main Container
+  • Data pushers: Push data by collecting from main container (logs)
+  • Proxies: 
+
+
+
+
+
+14. what is ReplicaSets and their uses ?
+• A ReplicaSet’s purpose is to maintain a stable set of replica Pods running at any given time.
+• If our application crashes (any pod dies), replicaset will recreate the pod immediately.
+
+• USES:
+- High Availability or Reliability
+- Scaling
+- Load Balancing
+- Labels & Selectors
+
+
+15. what is deployment & uses ?
+• deployment refers to the process of making the application work on a target device, whether it be a test server or production environment.
+• it is making sure the code free application is accessable to the end user.
+
+• USES:
+- Create a Deployment automatically creates a ReplicaSet.
+- Updating the Deployment
+- Rolling Back a Deployment
+- Scaling a Deployment
+- Pausing and Resuming a Deployment
+- Deployment Status
+- Clean up Policy
+- Canary Deployments
+
+
+15. what are labels and selectors ?
+- Labels & Selectors are the key items which ties all 3 together (Pod, ReplicaSet & Service), 
+  while writing YAML manifests for these objects.
+
+
+
+16. Types of EKS storage ?
+1) EBS CSI Driver 
+- EBS provides block level storage volumes for use with EC2 & Container instances.
+- We can mount these volumes as devices on our EC2 & Container instances.
+- We can dynamically change the configuration of a volume attached to an instance.
+- kubectl apply -k "github.com/kubernetes-sigs/aws-ebs-csi-driver/deploy/kubernetes/overlays/stable/?ref=master"
+
+2) EFS CSI Driver 
+3) FSx for Luster CS
+
+
+17. what is CSI driver & CNI policy ?
+
+
+18. what is config map ?
+- whatever configuration you want to send to pod can be written as configMap and can be mounted in the container.
+
+
+
+19. what are k8s secrets ?
+- Kubernetes Secrets let you store and manage sensitive information, such as passwords, OAuth tokens, and ssh keys.
+- Storing confidential information in a Secret is safer and more flexible than putting it directly in a Pod definition or in a container image.
+
+
+
+**********************
+20. steps to run anything in cluster ?
+- create cluster with OIDC utils.
+- edit security group of EC2 instance & give TCP inbound route (0.0.0.0/0) for woker node.
+- give cluster IAM a policy of CSI drivers.
+- install CSI drivers on local using
+  - kubectl apply -k "github.com/kubernetes-sigs/aws-ebs-csi-driver/deploy/kubernetes/overlays/stable/?ref=master"
+  - kubectl get pods -n kube-system        -- check
+
+
+    eksctl create cluster \
+  --name eksdemo1 \
+  --region us-east-1 \
+  --nodegroup-name eksdemo1-ng-public1 \
+  --node-type t3.medium \
+  --nodes 2 \
+  --nodes-min 2 \
+  --nodes-max 4 \
+  --node-volume-size 20 \
+  --ssh-access \
+  --ssh-public-key kube-demo \
+  --managed \
+  --asg-access \
+  --external-dns-access \
+  --full-ecr-access \
+  --appmesh-access \
+  --alb-ingress-access
+
+
+  eksctl utils associate-iam-oidc-provider \
+  --region us-east-1 \
+  --cluster eksdemo1 \
+  --approve
+
+- kubectl apply -k "github.com/kubernetes-sigs/aws-ebs-csi-driver/deploy/kubernetes/overlays/stable/?ref=master"
+
+
+
+
+
+21. what is init container ?
+- Init Containers run before App containers
+- Init containers can contain utilities or setup scripts not present in an app image.
+- We can have and run multiple Init Containers before App Container.
+- Init containers are exactly like regular containers, except:
+- Init containers always run to completion.
+  - Each init container must complete successfully before the next one starts.
+  - If a Pod's init container fails, Kubernetes repeatedly restarts the Pod until the init container succeeds.
+- However, if the Pod has a restartPolicy of Never, Kubernetes does not restart the Pod.
+
+
+
+
+22. what is Liveness ?
+- Kubelet uses liveness probes to know when to restart a container.
+- Liveness probes could catch a deadlock, where an application is running, but unable to make progress and restarting container 
+  helps in such state.
+
+   livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - nc -z localhost 8095
+            initialDelaySeconds: 60
+            periodSeconds: 10
+
+- initialDelaySeconds = it is the amount of time to delay/wait for liveness & readiness to trigger after conatiner starts. 
+- periodSeconds:      = it is how often to check for liveness/readiness.
+
+
+
+23. what is Readiness ?
+- Kubelet uses readiness probes to know when a container is ready to accept traffic.
+- When a Pod is not ready, it is removed from Service load balancers based on this readiness probe signal.
+    
+              readinessProbe:
+            httpGet:
+              path: /usermgmt/health-status
+              port: 8095
+            initialDelaySeconds: 60
+            periodSeconds: 10     
+
+
+
+
+
+24. what is Startup probe ?
+- Kubelet uses startup probes to know when a container application has started.
+- Firstly this proble disables liveness & readiness checks until it succeeds ensuring 
+  those pods don’t interfere with app startup.
+- This can be used to adopt liveness checks on slow starting containers, avoiding them 
+  getting killed by the kubelet before they are up and running.
+
+
+
+
+
+25. what is Request & Limit ?
+- We can specify how much each container a pod needs the resources like CPU & Memory.
+- When we provide this information in our pod, the scheduler uses this information to decide which node to place the Pod on.
+- When you specify a resource limit for a Container, the kubelet enforces those limits so that the running container is not 
+  allowed to use more of that resource than the limit you set.
+- The kubelet also reserves at least the request amount of that system resource specifically for that container to use.
+
+
+          resources:
+            requests:
+              memory: "128Mi" # 128 MebiByte is equal to 135 Megabyte (MB)
+              cpu: "500m" # `m` means milliCPU
+            limits:
+              memory: "500Mi"
+              cpu: "1000m"  # 1000m is equal to 1 VCPU core                                          
+
+
+
+
+26. what is Namespaces ?
+• Namespaces are also called Virtual clusters in our physical k8s cluster
+• We use this in environments where we have  many users spread across multiple teams or projects
+• Clusters with tens of users ideally don’t need to use namespaces
+• Benefits:
+- Creates isolation boundary from other k8s objects
+- We can limit the resources like CPU, Memory on per namespace basis (Resource Quota). 
+• when we delete namespace, all objects in the namespace also get deleted.
+
+
+
+27. what is a Resource Quota ?
+- it is the maximum limit set on an resource e.g: namespace.
+     
+     apiVersion: v1
+     kind: Namespace
+     metadata:
+       name: dev3
+  ---
+    apiVersion: v1
+    kind: ResourceQuota
+    metadata:
+      name: ns-resource-quota  ############
+      namespace: dev3
+    spec:
+      hard:
+        requests.cpu: "1"
+        requests.memory: 1Gi
+        limits.cpu: "2"
+        limits.memory: 2Gi  
+        pods: "5"    
+        configmaps: "5" 
+        persistentvolumeclaims: "5" 
+        replicationcontrollers: "5" 
+        secrets: "5" 
+        services: "5"                      
+
+
+
+
+********************
+28. what are the Drawbacks of EBS CSIover EFS for MySQL DB ??
+1) Complex setup to achieve  HA.
+2) Complex Multi-Az support for EBS.
+3) Complex Master-Master MySQL setup. 
+4) Complex Master-Slave MySQL setup.
+5) No Automatic Backup & Recovery.
+6) Drawbacks of EBS CSI for MySQL DB.
+7) No Auto-Upgrade MySQL.
+
+
+
+29. what is Kubernetes Ingress Class 
+- used to select desired ingress controller out of mutliple.
+- if we have multiple Ingress Controllers running in our Kubernetes cluster, it is used to select desired ingress controller.

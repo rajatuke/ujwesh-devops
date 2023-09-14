@@ -80,7 +80,7 @@
 - kubectl describe rs/<replicaset-name>       -- desribe replicaset.
 - kubectl expose pod my-first-pod  --type=NodePort --port=80 --name=my-first-service          -- expose the pod as a service.
 - kubectl expose rs <ReplicaSet-Name>  --type=NodePort --port=80 --target-port=8080 --name=<Service-Name-To-Be-Created>                 -- expose the replicaset as a service.
-
+  (If the port on which the Service will listen & the port on the pods to which traffic should be forwarded to (targetPort) are the same, and you don't explicitly mention the targetPort, Kubernetes will assume that the targetPort is the same as the port.)
 
 # DEPLOYMENT:
 - kubectl create deployment <Deplyment-Name> --image=<Container-Image>  -- create deployment
@@ -188,16 +188,87 @@ kubectl set image deployment/<Deployment-Name> <Container-Name>=<Container-Image
 
 
 6. what is 
-- CNI,
-2. OIDC             --  This is typically done to enable Kubernetes RBAC (Role-Based Access Control) with IAM roles for service accounts., 
-- servicerole, 
-- service discovery,
-4. Service account  -- it is used to assosicate iam policies to IAM roles and pass these roles as annotations in Service account.
-,                   -- this service account is used by deployments to assign needed services permissions in order to create Cloud/aws resources.
-- control Plane SG, 
+1. CNI              --  Container Network Interface. it is a policy to control and secure the network traffic between pods in your Kubernetes cluster. 
+                    --  When a pod is created or scheduled to a node, the kubelet invokes the CNI plugin specified in the pod's network configuration. 
+                    --  The CNI plugin then configures the networking for the pod.
+
+2. CSI driver       --  Container Storage Interface.
+                    --  It is used to provision, attach, detach, and manage storage volumes for pods running in the cluster.
+                    --  software component in Kubernetes that facilitates the interaction between the Kubernetes cluster and external storage systems.
+
+3. OIDC             --  This is typically done to enable Kubernetes RBAC (Role-Based Access Control) with IAM roles for service accounts.
+
+4. RBAC             --  Role-Based Access Control.
+                    --  used to ensuring that users or processes can only perform authorized actions within a system.
+                    --  1) Roles -- for namespace  2) ClusterRoles -- for entire cluster  3) RoleBindings --  associate a Role or ClusterRole with one or more users, groups, or service accounts. 4) ClusterRoleBindings -- Similar to RoleBindings but for entire cluster.
+
+5. external DNS     --  This is used when you want that the Route53 should create record in Route53 automatically./automates the management of DNS records for services running in a Kubernetes cluster.
+
+6. servicerole      --  Service roles are used to grant permissions and access to cloud resources, allowing these services/applications to interact with other resources and services within the cloud ecosystem. 
+
+7. Service account  --  it is used to assosicate iam policies to IAM roles and pass these roles as annotations in Service account.
+                    --  this service account is used by deployments to assign needed services permissions in order to create Cloud/aws resources.
+
+8. service discovery--  it is a mechanism that enables applications and services within a Kubernetes cluster to find and communicate with each other dynamically. 
+                    --  eg: db service name can be used in backend as DB_host="database-service" to connect to the database.
+
+9. max serge        --  The number of pods that can be created above the desired amount of pods during an update.
+                    --  The number of pods that can be unavailable during the update process.
+                    --  This can be an absolute number (max serge = 1 pod) or percentage (max serge = 25%) of the replicas count.
+
+10. Auto SSL/give SSL with SSL annotations with arn ??
+# Annotations Reference:  https://kubernetes-sigs.github.io/aws-alb-ingress-controller/guide/ingress/annotation/
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ingress-usermgmt-restapp-service
+  labels:
+    app: usermgmt-restapp
+  annotations:
+    # Ingress Core Settings  
+    kubernetes.io/ingress.class: "alb"
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    # Health Check Settings
+    alb.ingress.kubernetes.io/healthcheck-protocol: HTTP 
+    alb.ingress.kubernetes.io/healthcheck-port: traffic-port
+    #Important Note:  Need to add health check path annotations in service level if we are planning to use multiple targets in a load balancer    
+    #alb.ingress.kubernetes.io/healthcheck-path: /usermgmt/health-status
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: '15'
+    alb.ingress.kubernetes.io/healthcheck-timeout-seconds: '5'
+    alb.ingress.kubernetes.io/success-codes: '200'
+    alb.ingress.kubernetes.io/healthy-threshold-count: '2'
+    alb.ingress.kubernetes.io/unhealthy-threshold-count: '2'
+    ## SSL Settings
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}, {"HTTP":80}]'
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:180789647333:certificate/9f042b5d-86fd-4fad-96d0-c81c5abc71e1
+    #alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS-1-1-2017-01 #Optional (Picks default if not used)    
+spec:
+  rules:
+    #- host: ssldemo.kubeoncloud.com    # SSL Setting (Optional only if we are not using certificate-arn annotation)
+    - http:
+        paths:
+          - path: /app1/*
+            backend:
+              serviceName: app1-nginx-nodeport-service
+              servicePort: 80                        
+          - path: /app2/*
+            backend:
+              serviceName: app2-nginx-nodeport-service
+              servicePort: 80            
+          - path: /*
+            backend:
+              serviceName: usermgmt-restapp-nodeport-service
+              servicePort: 8095              
+# Important Note-1: In path based routing order is very important, if we are going to use  "/*", try to use it at the end of all rules.         
+
+    
+
+
+
+- control Plane SG, 7052209717 
 - policies in eks to be given 
 - IngressNodeToDefaultClusterSG 
-- what is max serge ??
+- what is  ??
 
 
 7. components in K8s ?
@@ -516,7 +587,7 @@ kubectl set image deployment/<Deployment-Name> <Container-Name>=<Container-Image
 
 
 ********************
-28. what are the Drawbacks of EBS CSIover EFS for MySQL DB ??
+28. what are the Drawbacks of EBS CSI over EFS for MySQL DB ??
 1) Complex setup to achieve  HA.
 2) Complex Multi-Az support for EBS.
 3) Complex Master-Master MySQL setup. 
